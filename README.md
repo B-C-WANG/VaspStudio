@@ -1,14 +1,14 @@
 # VaspStudio
 An useful tool to submit your VASP job on HPC automatically, manage your jobs and extract eneries...
 ## 好用的VASP任务提交和管理软件
-- 自动提取Material Studio的xsd文件，转坐标和晶胞参数到INCAR中，设置其他投job所需文件后，自动在超算上投job
+- 直接从Material Studio的xsd文件转POSCAR，自动生成POTCAR，用户自定义INCAR等文件，生成投job的配置文件，之后直接批量选取xsd文件投job
 - 提取能量、频率、查看RMS收敛情况，导出最后收敛结构等功能
-- 树状文件目录管理
+- 树状文件目录，色块标记，管理方便
 
 
 ## 使用
-- 安装Python3（推荐Anaconda3）pyqt5等运行./Main.py
-- 或下载Windows平台编译好的exe文件：https://sourceforge.net/projects/vaspstudio/files/
+- 下载Windows平台编译好的exe文件：https://sourceforge.net/projects/vaspstudio/files/
+- 或安装Python3（推荐Anaconda3）pyqt5等运行./Main.py
 - 具体使用方法查看UserGuide
 
 ## 开发说明
