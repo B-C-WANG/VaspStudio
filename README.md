@@ -14,5 +14,7 @@ An useful tool to submit your VASP job on HPC automatically, manage your jobs an
 ## 开发说明
 - GPL Licence
 - 安装Qt Designer修改ui文件
-
-![使用界面](https://i.imgur.com/nPptUF6.png)
+## 软件界面
+![](https://i.imgur.com/NIYPnWP.png)
+![](https://i.imgur.com/Qgvj576.png)
+![](https://i.imgur.com/K3RhVTw.png)
