@@ -31,7 +31,7 @@ from projectTypeAndChecker import *
 
 
 
-
+# TODO：增加频率字典形式导出
 
 # TODO 添加右键菜单，转移所有功能到右键菜单中，增加打开VASP目录功能
 # TODO 优化多线程，增加远端执行linux命令的功能
@@ -40,6 +40,7 @@ from projectTypeAndChecker import *
 # TODO: 增加自动下载功能
 # TODO：和wxDragon联动展示频率震动，或者自行使用openGL等
 # TODO: 目前nodel状态自动更新功能需要手动确定一个配置然后连接更新，之后尝试自动根据每个任务的配置来连接和更新
+# TODO： 虚频的英文单词有误，不能为virtual_freq
 
 
 class Main():
@@ -86,11 +87,11 @@ class Main():
 
 
     def main_window_error(self,string):
-        QMessageBox.critical(self.main_window,"错误",string)
+        QMessageBox.critical(self.main_window,"Error",string)
     def main_window_info(self,string):
-        QMessageBox.information(self.main_window,"提示",string)
+        QMessageBox.information(self.main_window,"Information",string)
     def main_window_warn(self,string):
-        QMessageBox.warning(self.main_window,"警告",string)
+        QMessageBox.warning(self.main_window,"Warning",string)
 
 
 
@@ -235,6 +236,11 @@ class Main():
         self.a_energy = self.m_information.addAction("Final Energy")
         self.a_freq = self.m_information.addAction("Frequency")
         self.a_grep = self.m_information.addAction("grep ... OUTCAR")
+        self.m_information.addSeparator()
+        self.a_info_export_csv = self.m_information.addAction("Export information to csv")
+        self.a_info_export_csv.triggered.connect(self.submit_information_export)
+        self.a_info_export_freq_to_dict = self.m_information.addAction("Export Freq to dict file for catmap")
+        self.a_info_export_freq_to_dict.triggered.connect(self.submit_export_freq_to_dict)
         self.a_rms.triggered.connect(self.submit_RMS_extract)
         self.a_energy.triggered.connect(self.submit_energy_collect)
         self.a_freq.triggered.connect(self.submit_freq_extract)
@@ -243,8 +249,11 @@ class Main():
         self.m_structure = self.xsdFileRightMenu.addMenu("Structure")
         self.a_structure_export = self.m_structure.addAction("Export Final Structure")
         self.a_structure_export.triggered.connect(self.submit_structure_export)
+
         # file control
         self.m_file_control = self.xsdFileRightMenu.addMenu("File")
+        self.a_outcar_export = self.m_file_control.addAction("Export OUTCAR in dir")
+        self.a_outcar_export.triggered.connect(self.submit_outcar_export)
         self.a_delete_file = self.m_file_control.addAction("Delete")
         self.a_delete_file.triggered.connect(self.xsd_file_delete)
 
@@ -807,6 +816,90 @@ class Main():
             i.local_vasp_dir = ""
         self.update_xsd_files_information()
 
+    def submit_outcar_export(self):
+        if self.xsd_files_item == []: return
+        self.selected_items = []
+        for i in self.xsd_files_item:
+            if i.isSelected():
+                self.selected_items.append(str(i.file_path))
+        xvis = self.vsp.get_XVI_from_relative_xsd_files(self.selected_items)
+        directory = QFileDialog.getExistingDirectory(
+            self.main_window,
+            "Choose a dir to store OUTCAR"
+        )
+        fail = []
+        for i in xvis:
+            try:
+                _from = i.local_vasp_dir+"/OUTCAR"
+                _to = directory+"/"+i.item_key.split("\\")[-1].split("/")[-1]+"_OUTCAR"
+                print("Copy from %s to %s" % (_from,_to))
+                shutil.copyfile(_from,_to)
+            except:
+                traceback.print_exc()
+                fail.append(i.item_key)
+        if len(fail) > 0 :
+            string = "Failed to export following OUTCAR: \n"
+            string += "\n".join(fail)
+            self.main_window_info(string)
+
+    def submit_export_freq_to_dict(self):
+        # 这个是专用于catmap对接的，之后根据catmap对接情况修改
+
+
+        string = "frequency_dict={"
+        if self.xsd_files_item == []: return
+        self.selected_items = []
+        for i in self.xsd_files_item:
+            if i.isSelected():
+                self.selected_items.append(str(i.file_path))
+        xvis = self.vsp.get_XVI_from_relative_xsd_files(self.selected_items)
+        for xvi in xvis:
+            string += '"' + str(xvi.relative_xsd_file_name) + '"' + ":" + "["
+            for i in xvi.real_freq:
+                string += str(i) + ","
+            string += "]"
+            string += ",\n"
+        string += "}"
+
+        path = QFileDialog.getSaveFileName(
+            self.main_window,
+            "Export",
+            "C:/",
+            "*.txt"
+        )[0]
+
+        with open(path,"w") as f:
+            f.write(string)
+
+    # 不建议导出csv然后excel打开，因为软件本身定位就是取代这个功能
+    def submit_information_export(self):
+        string = ""
+        if self.xsd_files_item == []: return
+        self.selected_items = []
+        for i in self.xsd_files_item:
+            if i.isSelected():
+                self.selected_items.append(str(i.file_path))
+        xvis = self.vsp.get_XVI_from_relative_xsd_files(self.selected_items)
+        path = QFileDialog.getSaveFileName(
+            self.main_window,
+            "Export to csv file",
+            "C:/",
+            "*.csv"
+        )[0]
+
+        # 导出的信息
+        attr_list = ["relative_xsd_file_name","energy","final_RMS","real_freq","virtual_freq"]
+        string = ",".join(attr_list) + "\n"
+        for xvi in xvis:
+
+            for attr in attr_list:
+                string += str(getattr(xvi,attr,"")).replace(","," ",999) + "," # 避免数据的空格导致划分错误
+            string += "\n"
+
+        with open(path,"w") as f:
+            f.write(string)
+
+
 
     def submit_structure_export(self):
         # TODO： 没有收敛状态的，不允许导出
@@ -822,6 +915,9 @@ class Main():
         VASPStuStructureManager().final_outani_structure_export(xvi_items=xvis)
         self.check_file_change_and_update_file()
         self.update_xsd_files_information()
+
+
+
 
     def submit_RMS_extract(self):
 
