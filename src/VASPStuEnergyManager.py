@@ -50,7 +50,7 @@ class VASPEnergyExtract():
         for xvi in xvi_items:
 
                 _type = getattr(xvi, "type", "")
-                if _type != Type.Origin: continue
+                if _type not in [ Type.Origin, Type.Convergence,Type.NotConvergence]: continue
                 if hasattr(xvi,"local_vasp_dir") == True and xvi.local_vasp_dir is not None and len(xvi.local_vasp_dir) > 0:
                     try:
                         with open(xvi.local_vasp_dir + "/OUTCAR", "r") as f:
@@ -61,7 +61,7 @@ class VASPEnergyExtract():
                             info = info.strip()
                             if info.startswith("energy  without entropy"):
                                 info_ = info
-                        energy = info_.split("energy  without entropy =")[1].split("energy")[0]
+                        energy = info_.split("energy  without entropy=")[1].split("energy")[0]
                         xvi.energy = energy
                     except:
                         traceback.print_exc()
