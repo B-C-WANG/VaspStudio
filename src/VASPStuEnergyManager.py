@@ -59,9 +59,9 @@ class VASPEnergyExtract():
 
                         for index, info in enumerate(data):
                             info = info.strip()
-                            if info.startswith("energy without entropy"):
+                            if info.startswith("energy  without entropy"):
                                 info_ = info
-                        energy = info_.split("energy without entropy =")[1].split("energy")[0]
+                        energy = info_.split("energy  without entropy =")[1].split("energy")[0]
                         xvi.energy = energy
                     except:
                         traceback.print_exc()

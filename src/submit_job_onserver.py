@@ -541,14 +541,15 @@ class XSD_Extract(object):
 
 class CollectOtherRunFiles(object):
 
-    def __init__(self, other_run_file_dir, base_POTCAR_dir, output_info):
+    def __init__(self, other_run_file_dir, base_POTCAR_dir, output_info,POTCAR_suffix):
 
         self.other_file_dir = other_run_file_dir
         self.base_POTCAR_dir = base_POTCAR_dir
         self.output_info = output_info
-
+        self.POTCAR_suffix = POTCAR_suffix
         self.copy_all_other_run_files_aim_path()
         self.get_POTCAR()
+
 
     def copy_all_other_run_files_aim_path(self):
         all_base_files = []
@@ -569,7 +570,7 @@ class CollectOtherRunFiles(object):
             element_info = self.output_info[i]["atom_info"]
             POTCAR_paths = []
             for element in element_info:
-                POTCAR_paths.append(self.base_POTCAR_dir + "/%s/POTCAR" % element)
+                POTCAR_paths.append(self.base_POTCAR_dir + "/%s/POTCAR" % (element+self.POTCAR_suffix))
             aim_paths = " ".join(POTCAR_paths)
 
             cmd_print_and_run("cat %s > %s" % (aim_paths, self.output_info[i]["aim_file_dir"] + "/POTCAR"))
@@ -618,7 +619,7 @@ class JobSubmit(object):
 
 
 def server_submit(xsd_files, base_xsd_dir, base_run_files,job_submit_command, base_POTCAR_dir, info_dir, TF_condition_func,project_type,
-                  base_fort188_path=None,debug_mode=True):
+                  base_fort188_path=None,debug_mode=True,POTCAR_suffix=""):
     a = XSD_Extract(xsd_files=xsd_files,
                     base_xsd_dir=base_xsd_dir,
                     base_POSCAR_dir=base_run_files,
@@ -633,7 +634,7 @@ def server_submit(xsd_files, base_xsd_dir, base_run_files,job_submit_command, ba
     output_info = a.main_generate_POSCAR_and_output()
 
     a = CollectOtherRunFiles(other_run_file_dir=base_run_files, base_POTCAR_dir=base_POTCAR_dir,
-                             output_info=output_info)
+                             output_info=output_info,POTCAR_suffix=POTCAR_suffix)
 
     b = JobSubmit(output_info=output_info, info_dir=info_dir,
                   job_submit_command=job_submit_command,
@@ -661,7 +662,14 @@ if __name__ == '__main__':
         base_run_files = info["remote_base_file_dir"]
         info_dir = base_xsd_dir
         job_submit_command = info["job_submit_command"]
-        # 这里fort.188就在这个base file目录之下，只是判断是否需要transition state
+
+        try:
+            POTCAR_suffix = info["POTCAR_suffix"]
+        except KeyError:
+            POTCAR_suffix = ""
+
+
+            # 这里fort.188就在这个base file目录之下，只是判断是否需要transition state
         project_type = info["project_type"]
         print(info["project_type"])
         if info["project_type"] == "TS_fort_188":
@@ -685,6 +693,7 @@ if __name__ == '__main__':
             base_fort188_path=base_fort188_path,
             debug_mode=debug_mode,
             project_type=project_type,
-            job_submit_command =job_submit_command
+            job_submit_command =job_submit_command,
+            POTCAR_suffix = POTCAR_suffix
 
         )
