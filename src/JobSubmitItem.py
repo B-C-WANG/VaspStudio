@@ -30,6 +30,7 @@ class JobSubmit_item(VSP_Item):
         self.local_project_dir = vsp.local_project_dir
         #assert isinstance(vsp,VASPStuProject)
 
+
         self.vsp.job_submit_items[self.item_key] = self
 
         self.remote_project_dir = remote_project_dir
