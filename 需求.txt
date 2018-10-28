@@ -1,3 +1,7 @@
 增加最后修改时间显示
 
 增加配置文件导入导出功能
+
+删除submit job on server 里面的中文
+
+备注改成PBS run文件的name，
