@@ -562,7 +562,10 @@ class Main():
                     info = self.vsp.xsd_tree_widget_param["expanded_status"]
                     tw.expandAll()
                     for key in self.tree_node_widget_item_info.keys():
-                        self.tree_node_widget_item_info[key].setExpanded(info[key])
+                        try:
+                            self.tree_node_widget_item_info[key].setExpanded(info[key])
+                        except:
+                            continue
                 except:
                     tw.expandAll()
             expand()
