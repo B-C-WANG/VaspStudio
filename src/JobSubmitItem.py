@@ -99,6 +99,7 @@ class JobSubmit_item(VSP_Item):
 
     def submit_job(self,XVI_items):
         # 这个函数只负责运行，不负责反馈，之后update...才会反馈，因为只有成功获取到节点信息，才能算作submit
+
         try:
             info_dict = None
             key_items, text_file_items, file_items, TF_function_items = self.transform_items(self.item_keys)

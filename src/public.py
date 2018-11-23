@@ -30,20 +30,20 @@ class Type():
 
 Type_Color = {
 
-    Type.Origin: QColor(128,138,135),
-    Type.Convergence: QColor(0,255,255),
-    Type.NotConvergence:QColor(255,0,0)
+    Type.Origin: QColor(128,138,135),  # 灰色
+    Type.Convergence: QColor(	127,255,212	), # 青色
+    Type.NotConvergence:QColor(255,0,0)    # 橘色
 }
 
 STATUS_COLOR = {
-    XVI_Status.Submitted:QColor(255,255,0),
-    XVI_Status.NotSubmitted:QColor(128,138,135),
-    XVI_Status.Finished:QColor(124,252,0),
-    XVI_Status.Convergence:QColor(0,255,255),
-    XVI_Status.NotConvergence:QColor(255,0,0),
+    XVI_Status.Submitted:QColor(255,255,0), # 黄色
+    XVI_Status.NotSubmitted:QColor(128,138,135), # 灰色
+    XVI_Status.Finished:QColor(255,165,0), # 翠绿色
+    XVI_Status.Convergence:QColor(0,255,255), # 蓝色
+    XVI_Status.NotConvergence:QColor(255,0,0), # 红色
     XVI_Status.Canceled:QColor(128,138,135),
-    XVI_Status.FreqFail:QColor(210,105,30),
-    XVI_Status.FreqPass:QColor(0,255,0)
+    XVI_Status.FreqFail:QColor(210,105,30), # 棕色
+    XVI_Status.FreqPass:QColor(0,255,0) # 绿色
 
 }
 

@@ -977,6 +977,39 @@ class SubmitJob_Window(ItemWindow):
             self.window_ui.contentWidget.addItem(i)
 
     def check_one(self):
+        # 这里已经改成了copy，但是函数名称暂时不变
+        for i in self.widget:
+            if i.isSelected():
+
+                name = i.text()
+                the_item = self.vsp.job_submit_items[name]
+                total_item_names = list(self.vsp.job_submit_items.keys())
+                base_name = name
+                index = 1
+                new_name = base_name + str(index)
+                while new_name in total_item_names:
+                    index += 1
+                    new_name = base_name + str(index)
+
+                print(self.vsp.job_submit_items)
+
+                JobSubmit_item(
+                    name=new_name,
+                    vsp=self.vsp,
+                    item_keys=the_item.item_keys,
+                    project_type=the_item.project_type,
+                    remote_project_dir=the_item.remote_project_dir,
+                    host=the_item.host,
+                    port=the_item.port,
+                    username=the_item.username,
+                    password=the_item.password
+                )
+        self.update()
+
+
+
+        return
+
         for i in self.widget:
             if i.isSelected():
                 tmp = self.vsp.job_submit_items[i.text()]

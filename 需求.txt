@@ -4,4 +4,8 @@
 
 删除submit job on server 里面的中文
 
-备注改成PBS run文件的name，
+删除不必要的提示框
+
+增加加号折叠保存
+
+备注改PBS run文件的name，

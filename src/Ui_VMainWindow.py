@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-
+# Form implementation generated from reading ui file 'C:\Users\wang\Documents\GitHub\DFT_Calc\pyqt5program\pyqtProject\VMainWindow.ui'
+#
 # Created by: PyQt5 UI code generator 5.10.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -249,7 +250,7 @@ class Ui_VASPStudio(object):
         self.menuBar.addAction(self.menuOpenWindows.menuAction())
 
         self.retranslateUi(VASPStudio)
-        self.leftTab.setCurrentIndex(1)
+        self.leftTab.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(VASPStudio)
 
     def retranslateUi(self, VASPStudio):
@@ -262,7 +263,7 @@ class Ui_VASPStudio(object):
         self.submitJobNew.setText(_translate("VASPStudio", "New"))
         self.submitJobRemove.setText(_translate("VASPStudio", "Remove"))
         self.submitJobEdit.setText(_translate("VASPStudio", "Edit"))
-        self.submitJobCheck.setText(_translate("VASPStudio", "Check"))
+        self.submitJobCheck.setText(_translate("VASPStudio", "Copy"))
         self.groupBox_6.setTitle(_translate("VASPStudio", "Text File Library"))
         self.textItemNew.setText(_translate("VASPStudio", "New"))
         self.textItemRemove.setText(_translate("VASPStudio", "Remove"))

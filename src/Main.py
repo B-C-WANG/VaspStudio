@@ -28,7 +28,22 @@ from projectTypeAndChecker import *
 
 
 
+'''
+标题是字符串，
+xvi试图去获取这些字符串的attr，获取不到就是None
+扩展一个新功能：
+使用xvi传参，修改xvi参数，
+然后在self.xsd_file_contents中加上这个标题栏即可，
+之后update_xsd_file_information自己会根据标题栏的这些字符串去获取attr显示
 
+所有与UI显示相关的信息，全部存储在XVI实例中
+每次pickle保存这些信息
+
+关于投job：
+将一个job需要的文件和xvi相关的信息写入的json文件，以及投job的python脚本上传到云端
+然后运行python命令 
+
+'''
 
 
 # TODO：增加频率字典形式导出
@@ -373,8 +388,15 @@ class Main():
 
         tw = self.main_window_ui.xsdFileTreeWidget
         n = []
+        # 存储标题栏的宽度
         for i in range(tw.columnCount()):
             n.append(tw.columnWidth(i))
+        expand_state_dict = {}
+        # 存储是否expanded,注意需要使用node去获取信息
+        for key in self.tree_node_widget_item_info:
+            expand_state_dict[key] = self.tree_node_widget_item_info[key].isExpanded()
+
+        self.vsp.xsd_tree_widget_param["expanded_status"] = expand_state_dict
         self.vsp.xsd_tree_widget_param["column_status"] = n
         # 如果保存了一次，变为new save，因为新保存的密码固定了
         self.vsp.new_save = True
@@ -412,6 +434,7 @@ class Main():
 
 
     def update_item_information(self):
+        # 选中后增加具体的信息
         if self.xsd_files_item == []: return
         self.selected_items = []
         for i in self.xsd_files_item:
@@ -473,26 +496,29 @@ class Main():
 
 
                 l = [root]
-                trees = file.split("/")[1:]# 第一个元素是""
+                trees = file.split("/")[1:]# 第一个元素是“”，是root
 
-
-                for i in range(len(trees)+1):
+                # 按照文件目录树进行，如果能够获取到子集就开始增加内容，否则增加child
+                for i in range(len(trees)+1):# 对于剩下的child
                     node_name = "/".join(trees[:i])
-                    try:
+                    try:# 尝试找到这个node，如果没有就创建
                         node = file_name_item_dict[node_name]
 
                     except:
+                        # 创建child node，加入到字典中
                         node = QTreeWidgetItem(l[-1])
                         index += 1
                         node.setText(0, node_name.split("/")[-1])
                         file_name_item_dict[node_name] = node
                         try:
+                            # 这里面的每个显示都是直接从xvi信息中获取，然后设置
+                            # 这里如果node能够获取到文件，就开始加上文件信息，否则就是空的只作为有内容的node的parent
                             xvi_item = self.vsp.relative_path_XVI_dict["/"+node_name]
                             for i in range(len(self.xsd_file_contents)):
                                 #if getattr(xvi_item,"type","") == "":xvi_item.type = Type.Origin
                                 node.setText(i+1,getattr(xvi_item,self.xsd_file_contents[i],"None"))
                                 if self.xsd_file_contents[i] == "status":
-
+                                    # 这些set使用index进行的，所以先判断是不是在相应的列，也可改成名称为key，value为index
                                     node.setBackground(i+1,QBrush(STATUS_COLOR[xvi_item.status]))
                                 if self.xsd_file_contents[i] == "type":
                                     try:
@@ -519,6 +545,7 @@ class Main():
                     l[-2].addChild(l[-1])
 
             def load_column_status():
+                # 这里设置列的长度，首先用一个变量去存储这些列，存储在save project中
                 try:
                     info = self.vsp.xsd_tree_widget_param["column_status"]
                     for i in range(tw.columnCount()):
@@ -526,8 +553,19 @@ class Main():
                 except:
                     return
             load_column_status()
-
-            tw.expandAll()
+            # 把node的信息存储一下！用于接下来搞node的扩展
+            self.tree_node_widget_item_info = file_name_item_dict
+            # 这里我们用一个与tree node widget 。。key一模一样的字典去存储node的expand信息，之后
+            # 用这个key去获取node以及node的expand信息然后修改！
+            def expand():# 存储各个列的expand情况
+                try:
+                    info = self.vsp.xsd_tree_widget_param["expanded_status"]
+                    tw.expandAll()
+                    for key in self.tree_node_widget_item_info.keys():
+                        self.tree_node_widget_item_info[key].setExpanded(info[key])
+                except:
+                    tw.expandAll()
+            expand()
             print(tw.rootIndex())
             return
 
@@ -739,6 +777,8 @@ class Main():
             traceback.print_exc()
 
     # TODO: 编写逻辑架构，对于所有选中item，设定allow status和allow type，设定之后进行的参数，设定是否多线程等等
+
+
     def submit_freq_extract(self):
         if self.xsd_files_item == []: return
         self.selected_items = []
@@ -928,9 +968,7 @@ class Main():
         except:
             self.main_window_info("Invalid Input")
             return
-        QMessageBox.information(self.main_window,
-                                "提示",
-                                "提取时间可能较长，程序可能未响应。") # TODO：使用多线程解决这个问题，
+        #QMessageBox.information(self.main_window,"提示","提取时间可能较长，程序可能未响应。") # TODO：使用多线程解决这个问题，
         if self.xsd_files_item == []: return
         self.selected_items = []
         for i in self.xsd_files_item:
@@ -944,9 +982,7 @@ class Main():
 
     def submit_energy_collect(self):
 
-        QMessageBox.information(self.main_window,
-                                "提示",
-                                "提取时间可能较长，程序可能未响应。")
+        #QMessageBox.information(self.main_window,"提示","提取时间可能较长，程序可能未响应。")
 
         if self.xsd_files_item == []: return
         self.selected_items = []
@@ -1079,7 +1115,7 @@ class Main():
 
             thread = SJT(jc, self.selected_items)
             thread.start()
-            QMessageBox.information(self.main_window, "提示", "任务提交中......")
+            #QMessageBox.information(self.main_window, "提示", "任务提交中......")
             error_msg = "任务提交失败，请检查\n1:服务器路径设置是否正确\n2:各文件路径是否有效\n3:Key Library是否按照说明书要求设置"
             while True:
                 q = thread.status
