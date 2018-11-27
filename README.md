@@ -1,6 +1,7 @@
 # VaspStudio
 An useful tool to submit your VASP job on HPC automatically, manage your jobs, extract eneries and export final structure to .xsd files.
-
+## **推荐工作流程（重要）**
+在Material Studio摆结构--创建Vasp Studio任务，设置project path为Material Studio的Document路径--根据Vasp需求建立库文件--建立投job的配置--投job计算能量--收敛之后导出结构（未收敛可在Material Studio中改名，在Vasp Studio中Refresh后重投）--导出结构后会自动检测到收敛的结构并添加相应的收敛标志--使用收敛的结构投频率--导出频率信息，检测频率是否合格（注意：目前只有Type为收敛的结构才有能够检测频率）--如果频率合格，用之前收敛的结构再次导出，此时命名会加上一个数字（如0Convergence_...）--使用这个新导出的结构投其他任务，比如贝叶斯泛函计算任务。最终可批量导出OUTCAR以及频率字典（用作Catmap动力学计算或者CRN动力学并行筛选程序）
 ## 更新日志 Update
 ### 2018年11月23日 v0.21
 - 增加文件树折叠存储
@@ -35,7 +36,7 @@ An useful tool to submit your VASP job on HPC automatically, manage your jobs, e
 - install Python3(Anaconda3 recommended), pyqt5 and other essential python libs, run ./Main.py
 - <font color="red"> **More details on UserGuide-english** </font>
 - <font color="red"> **Star it if you think it helps ^v^** </font>
-## 工作流程
+## 功能实现
 - 任务信息：所有信息用XVI对象存储，包括xsd文件路径，提取出的能量，状态等信息。UI绘制时根据这些信息绘制，一些是直接设置字符串，一些是根据状态更换颜色。UI信息获取是设置attr的数组，然后getattr获得信息进行更新。
 - 信息提取：完全用XVI对象作为参数，直接获取其成员，然后修改其成员，最后返回更新，这些可用外部脚本进行。
 - 多线程：目前只有任务提交使用了多线程，其他如能量提取等耗时相对较短没有使用多线程。
