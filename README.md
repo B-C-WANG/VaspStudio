@@ -1,8 +1,20 @@
 # VaspStudio
 An useful tool to submit your VASP job on HPC automatically, manage your jobs, extract eneries and export final structure to .xsd files.
+## 软件截图
+![](https://i.imgur.com/NIYPnWP.png)
+![](https://i.imgur.com/Qgvj576.png)
+![](https://i.imgur.com/K3RhVTw.png)
+
 ## **推荐工作流程（重要）**
 在Material Studio摆结构--创建Vasp Studio任务，设置project path为Material Studio的Document路径--根据Vasp需求建立库文件--建立投job的配置--投job计算能量--收敛之后导出结构（未收敛可在Material Studio中改名，在Vasp Studio中Refresh后重投）--导出结构后会自动检测到收敛的结构并添加相应的收敛标志--使用收敛的结构投频率--导出频率信息，检测频率是否合格（注意：目前只有Type为收敛的结构才有能够检测频率）--如果频率合格，用之前收敛的结构再次导出，此时命名会加上一个数字（如0Convergence_...）--使用这个新导出的结构投其他任务，比如贝叶斯泛函计算任务。最终可批量导出OUTCAR以及频率字典（用作Catmap动力学计算或者CRN动力学并行筛选程序）
 ## 更新日志 Update
+### 2018年12月6日 v0.22-alpha
+- <font color=red>**更新到master，原v0.21版本在branch：[v0.21-stable](https://github.com/B-C-WANG/VaspStudio/tree/v0.21-stable)**</font>
+- **编译为exe文件失败，可使用python运行，需安装mayavi，PyQt5，以及自定模块VaspDataExtract等，推荐Pycharm下Debug模式运行，安装必要库**
+- 增加了使用mayavi进行分子绘制的功能，双击某列即可看到原子结构
+- 将Project Information 更新为Settings，并可以在Settings处通过修改文本文件更改分子绘制的参数
+- src中增加了很多失败的build方法
+- **使用方法查看文档：MoleculePlotGuide.md**
 ### 2018年11月23日 v0.21
 - 增加文件树折叠存储
 - 修改收敛的导出结构的颜色，避免和收敛状态颜色相同
@@ -14,8 +26,9 @@ An useful tool to submit your VASP job on HPC automatically, manage your jobs, e
 ### 2018年6月30日
 - 更新中英文文档
 ### 2018年6月24日 v0.2
-- 项目从DFT_Calc/pyqt5program/AUTOVASP中公开，版本v0.2。
-- v0.1版本为无GUI界面的任务提交工具
+- 项目从DFT_Calc/pyqt5program/AUTOVASP中公开，版本v0.2，增加GUI。
+### 2018年5月前 v0.1
+- 无GUI界面的任务提交脚本
 ## 好用的VASP任务提交和管理软件
 - 自动ssh登录Linux服务器投job，只需要Material Studio摆摆结构，SFTP下载文件，剩下的VASP Studio完成
 - 直接从Material Studio的xsd文件转POSCAR，自动生成POTCAR，用户自定义INCAR等文件，生成投job的配置文件，批量选取投job
@@ -39,7 +52,7 @@ An useful tool to submit your VASP job on HPC automatically, manage your jobs, e
 ## 功能实现
 - 任务信息：所有信息用XVI对象存储，包括xsd文件路径，提取出的能量，状态等信息。UI绘制时根据这些信息绘制，一些是直接设置字符串，一些是根据状态更换颜色。UI信息获取是设置attr的数组，然后getattr获得信息进行更新。
 - 信息提取：完全用XVI对象作为参数，直接获取其成员，然后修改其成员，最后返回更新，这些可用外部脚本进行。
-- 多线程：目前只有任务提交使用了多线程，其他如能量提取等耗时相对较短没有使用多线程。
+- 多线程：目前只有任务提交使用了多线程，其他如能量提取等耗时相对较短没有使用多线程。主线程向SubmitJobItem中的函数传参然后调用执行，提交job的线程会上传文件，然后执行linux上的命令，执行命令此时会等待linux系统完成命令并获得输出，获得输出后线程结束，主线程继续，然后才调用update node info更新node信息，使用linux脚本种创建的临时文件
 - 任务提交：使用python的ftp和ssh等协议连接HPC，上传下载文件和执行命令。
 - UI信息：像标题栏宽度、文件树展开等这一类，在存储时对其中的信息进行存储，比如宽度用list存储，存储找VSP类中，当update UI信息时读取这些信息。
 - 文件结构树：比如a/b/c/d.xsd，先用斜杠分割成a,a/b,a/b/c和a/b/c/d.xsd，然后以它们作为key，node对象作为value，能够获取node就将下一个作为它的child，如果不能获取就重新创建node，当发现是一个VSP中存储的有效XVI类时，比如用路径a/b/c/d.xsd能够获取到一个XVI类，则设置为最末节点，开始绘制信息。
@@ -62,7 +75,3 @@ An useful tool to submit your VASP job on HPC automatically, manage your jobs, e
 - 安装Qt Designer修改ui文件，安装Python3，pyqt5等必要模块开发
 
 
-## 软件界面
-![](https://i.imgur.com/NIYPnWP.png)
-![](https://i.imgur.com/Qgvj576.png)
-![](https://i.imgur.com/K3RhVTw.png)

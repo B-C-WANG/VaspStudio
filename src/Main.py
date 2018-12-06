@@ -1,8 +1,23 @@
 # -*- coding: UTF-8 -*-
 
-from __init__ import *
+import os
+#print(ETSConfig.toolkit)
 
+
+
+#os.environ['QT_API'] = 'pyqt5'
+#from traits.etsconfig.api import ETSConfig
+#ETSConfig.toolkit = 'pyside2'
+
+
+
+import PyQt5.sip
+import PyQt4.sip
+from __init__ import *
+import sys
+sys.setrecursionlimit(50000)
 from VASPStuEnergyManager import *
+
 from PyQt5.QtCore import QCoreApplication,QThread
 from PyQt5.QtWidgets import QTableWidgetItem,QTreeWidgetItem,QInputDialog,QComboBox,QDialog,QColorDialog,QMenu
 from PyQt5.QtGui import QBrush,QColor,QCursor,QIcon
@@ -10,20 +25,24 @@ from SFTP_SSH_Utils import *
 from utils import *
 from VASPStuProject import *
 import sys
-import traceback
+#import traceback
 from ItemWindow import *
 #from VASPStu3DPlot import *
 
-import json
+#import json
 from VASPStuStructureManager import *
 from VASPStuFileLinker import *
+from VASPStuMoleculeViewSubmit import *
+#import threading
 
 from Ui_about import *
 from Ui_CreateProject import *
 from Ui_VMainWindow import *
-from Ui_JobSumit import Ui_CreateProject as Ui_JobSubmit
+#from Ui_JobSumit import Ui_CreateProject as Ui_JobSubmit
 from Ui_SubmitJob import *
 from projectTypeAndChecker import *
+import traceback
+
 
 
 
@@ -45,13 +64,53 @@ xvi试图去获取这些字符串的attr，获取不到就是None
 
 '''
 
+# 默认的分子绘图设置
+default_molecule_view_setting_text= \
+'''
+# the radius of atom when plot 
+atom_radius_config={
+"H": 0.8,
+"C": 1,
+"O": 1,
+"Pt": 2,
+"Au":2,
+}
+# the rgb of atom when plot
+atom_color_config={
+"H": (255, 255, 255),
+"C": (130, 130, 130),
+"O": (255, 0, 0),
+"Pt": (93, 123, 195),
+"Au":(0,255,255),
+}
+# e,g. ("H", "C"): 1.8 means we make bond C-H when H and C distance is lower than 1.8
+bond_config={
+("H", "C"): 1.8,  
+("Pt", "C"): 3,
+("Pt", "O"): 3,
+("Pt", "H"): 2,
+("C", "O"): 1.8,
+("H", "O"): 1.8,
+("C", "C"): 1.8,
+}
+bond_radius=0.2
+# for period structure XYZ e.g. 1,1,0 means 3x3x1; 0,0,0 means 1x1x1; 2,2,1 means 5x5x3           
+repeat_config=(0, 0, 0)
+background_color=(255, 255, 255)
+# initial window size
+window_sizeX= 1280            
+window_sizeY=960
+# resolution, important for graph and speed
+circle_resolution=40
+tube_resolution=20
+'''
+
 
 # TODO：增加频率字典形式导出
 
 # TODO 添加右键菜单，转移所有功能到右键菜单中，增加打开VASP目录功能
 # TODO 优化多线程，增加远端执行linux命令的功能
 # TODO：用openGl等库展示优化过程
-# TODO： 增加复制item功能
 # TODO: 增加自动下载功能
 # TODO：和wxDragon联动展示频率震动，或者自行使用openGL等
 # TODO: 目前nodel状态自动更新功能需要手动确定一个配置然后连接更新，之后尝试自动根据每个任务的配置来连接和更新
@@ -220,7 +279,9 @@ class Main():
 
     def add_right_memu_to_xsdFileTreeWidget(self):
         self.xsdFileRightMenu = QMenu(self.main_window_ui.xsdFileTreeWidget)
-
+        self.a_view_action = self.xsdFileRightMenu.addAction("View Molecule")
+        self.a_view_action.triggered.connect(self.submit_view_molecule)
+        self.xsdFileRightMenu.addSeparator()
         # mark
         self.a_mark_action = self.xsdFileRightMenu.addAction("Mark")
         self.a_mark_action.triggered.connect(self.submit_mark)
@@ -274,6 +335,9 @@ class Main():
 
         self.main_window_ui.xsdFileTreeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.main_window_ui.xsdFileTreeWidget.customContextMenuRequested.connect(self.show_xsdFile_right_menu)
+
+        self.main_window_ui.xsdFileTreeWidget.doubleClicked.connect(self.submit_view_molecule)
+
 
 
 
@@ -363,11 +427,20 @@ class Main():
     def after_open_or_load(self):
         # 旧版本vsp文件更新
         self.vsp.update_old_version()
-
+        self.update_molecule_view_plot_settings()
         self.check_file_change_and_update_file()
         self.update_project_information()
         self.update_xsd_files_information()
         self.generate_item_window()
+
+    def update_molecule_view_plot_settings(self):
+        try:
+            self.main_window_ui.moleculeViewSettingsText.setPlainText(self.vsp.molecule_view_setting_text)
+        except:
+            self.main_window_ui.moleculeViewSettingsText.setPlainText(default_molecule_view_setting_text)
+            traceback.print_exc()
+
+
 
     def save_project(self):
 
@@ -398,6 +471,7 @@ class Main():
 
         self.vsp.xsd_tree_widget_param["expanded_status"] = expand_state_dict
         self.vsp.xsd_tree_widget_param["column_status"] = n
+        self.vsp.molecule_view_setting_text = self.main_window_ui.moleculeViewSettingsText.toPlainText()
         # 如果保存了一次，变为new save，因为新保存的密码固定了
         self.vsp.new_save = True
         self.vsp.save_project_info(path)
@@ -483,6 +557,7 @@ class Main():
             filenames = list(self.vsp.relative_path_XVI_dict.keys())
             filenames = sorted(filenames)
             tw = self.main_window_ui.xsdFileTreeWidget
+
             index = 0
             tw.clear()
             # TODO :这里让用户自选显示的顺序和内容
@@ -567,7 +642,7 @@ class Main():
                         except:
                             continue
                 except:
-                    tw.expandAll()
+                    pass
             expand()
             print(tw.rootIndex())
             return
@@ -793,6 +868,31 @@ class Main():
         freq = freq.getText(self.main_window, "输入虚频允许的数目", "虚频数目")[0]
         VASPFreqExtract().freq_extract(xvis,int(freq))
         self.update_xsd_files_information()
+
+    def submit_view_molecule(self):
+        if self.xsd_files_item == []: return
+        self.selected_items = []
+        for i in self.xsd_files_item:
+            if i.isSelected():
+                # 只显示选中的第一个的结构
+                self.selected_items.append(str(i.file_path))
+
+                xvis = self.vsp.get_XVI_from_relative_xsd_files(self.selected_items)[0]
+
+                # 不管多不多线程，现在的问题是，显示之后会退出
+                #s = threading.Thread(target=thread_submit_plot)
+                #s.start()
+                #thread_submit_plot()
+                try:
+                    #s = threading.Thread(target=thread_submit_plot)
+                    #s.start()
+
+                    submit_plot(xvis,config_string=self.main_window_ui.moleculeViewSettingsText.toPlainText())
+                except:
+                    traceback.print_exc()
+                return
+
+
 
     def submit_mark(self):
         if self.xsd_files_item == []: return

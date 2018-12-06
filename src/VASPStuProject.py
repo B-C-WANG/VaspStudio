@@ -206,6 +206,7 @@ class VASPStuProject(object):
     def get_XVI_from_relative_xsd_files(self,relative_xsd_files):
         xvis = []
         for i in relative_xsd_files:
+
             xvis.append(self.relative_path_XVI_dict[i])
         return xvis
 
