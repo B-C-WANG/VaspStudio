@@ -7,6 +7,10 @@ http://docs.enthought.com/mayavi/mayavi/auto/example_chemistry.html#example-chem
 
 import os
 import warnings
+from traits.etsconfig.api import ETSConfig
+ETSConfig.toolkit = 'wx'
+os.environ['ETS_TOOLKIT'] = 'wx'
+
 import numpy as np
 #from mayavi.tools import engine_manager
 from mayavi import mlab
@@ -14,6 +18,7 @@ from mayavi import mlab
 from VDE.AtomSpace import atom_index_trans_reverse, atom_index_trans
 from VDE.VASPMoleculeFeature import VASP_DataExtract
 import traceback
+
 
 class Plot():
     @staticmethod
@@ -165,6 +170,8 @@ class MoleculePlot():
         except:
             traceback.print_exc()
 
+        
+
         # renderer = scene.renderer
         # pass
         #
@@ -191,6 +198,7 @@ class MoleculePlot():
         print("After", coord.shape)
 
         pair_index = self.get_bond_plot_index(coord)
+
 
 
         # 绘制分子
@@ -250,6 +258,18 @@ class MoleculePlot():
             # if self.mlab:
             #
             #     mlab.close()
+
+    def get_bond_plot_index_by_pair(self,coord):
+        # get_bond_plot_index是采用coord遍历，这里按照bond pair遍历，得到的list就可以采用批量绘制
+        bond_pair = list(self.bond_config.keys())
+        # 最后得到的应该是shape为-1,2的array list，每个分别是起始原子和结束原子，都是多个
+        pair_index = []
+        for pair in bond_pair:
+            # 没有的原子种类不进行绘制
+            if pair[0] in self.atom_cases and pair[1] in self.atom_cases:
+                pass
+
+        pass
 
     def get_bond_plot_index(self, coord):
             # 因为一般是小批量应用，一次导出100个结构不得了了，所以可以不用太过在意时间复杂度
@@ -332,13 +352,13 @@ def molecule_plot():
             },
             # 成键设置
             bond_config={
-                ("H", "C"): 1.8,  # 表示C和H距离小于2就成键
-                ("Pt", "C"): 3,
-                ("Pt", "O"): 3,
-                ("Pt", "H"): 2,
-                ("C", "O"): 1.8,
-                ("H", "O"): 1.8,
-                ("C", "C"): 1.8,
+                # ("H", "C"): 1.8,  # 表示C和H距离小于2就成键
+                # ("Pt", "C"): 3,
+                # ("Pt", "O"): 3,
+                # ("Pt", "H"): 2,
+                # ("C", "O"): 1.8,
+                # ("H", "O"): 1.8,
+                # ("C", "C"): 1.8,
 
             },
             # 周期性设置

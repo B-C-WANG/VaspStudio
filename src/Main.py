@@ -6,14 +6,19 @@ import os
 
 
 #os.environ['QT_API'] = 'pyqt5'
-#from traits.etsconfig.api import ETSConfig
-#ETSConfig.toolkit = 'pyside2'
+from traits.etsconfig.api import ETSConfig
+ETSConfig.toolkit = "wx"
+os.environ['ETS_TOOLKIT'] = 'wx'
+
+
+# 在Runtime时会遇上这个问题：找不到wx的toolkit！
+# 关于这个测试查看 "关于Build.md"
+#from pyface import base_toolkit
+#base_toolkit.import_toolkit("wx")
+#exit()
 
 
 
-import PyQt5.sip
-import PyQt4.sip
-from __init__ import *
 import sys
 sys.setrecursionlimit(50000)
 from VASPStuEnergyManager import *

@@ -1,3 +1,19 @@
+## 最新
+- 使用
+```
+from traits.etsconfig.api import ETSConfig
+ETSConfig.toolkit = 'wx'
+```来更改toolkit，尝试能否build，这样不用依赖于pyqt4等
+- **同时需要改写pyface.ui.wx.window里面的self._position = event.GetEventObject().GetPositionTuple()，避免报错，改写为self._position = (event.GetEventObject().GetPositionTuple().x,event.GetEventObject().GetPositionTuple().y)**
+- <font color=red>**使用wxPython作为toolkit之后，会发现原子绘制很快，但是化学键绘制慢，原因是化学键没有使用array批量绘制，尝试改进！**</font>
+- 同时使用wx作为toolkit之后MoleculePlot能够正常运行了
+- 但是RunTime仍然存在no toolkit wx
+- 于是在Main.py前面加上了一些测试代码，调用pyface的base_toolkit，然后在pkg_resource的\_\_init\_\_.py里面的iter_entry_points加上一些print，尝试编译后运行，如果直接运行，会显示一大串输出，其中有**pyface 6.0.0 {'null': EntryPoint.parse('null = pyface.ui.null.init:toolkit_object'), 'qt': EntryPoint.parse('qt = pyface.ui.qt4.init:toolkit_object'), 'qt4': EntryPoint.parse('qt4 = pyface.ui.qt4.init:toolkit_object'), 'wx': EntryPoint.parse('wx = pyface.ui.wx.init:toolkit_object')}**，这里就找到了**[EntryPoint.parse('wx = pyface.ui.wx.init:toolkit_object')]**，但是编译后测试发现只有
+gevent 1.2.2 {}
+cryptography 2.1.4 {}
+
+
+
 ## 使用pyinstaller
 - Build脚本：Build-pyinstall-useSpec.bat是编译成功的脚本，需要先运行Build.bat，然后停止，然后修改生成的Vasp Studio.spec文件，里面增加递归深度的修改import sys sys.setrecursionlimit(50000)，然后运行Build-pyinstall-useSpec.bat
 - Build.bat-直接pyinstall进行Build，BuildMoleculePlotTest：对MoleculePlot文件进行Build，单独测试mayavi的build
