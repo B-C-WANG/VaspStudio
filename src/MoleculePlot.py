@@ -43,6 +43,9 @@ class Plot():
                           resolution=resolution
                           )
 
+
+
+
     @staticmethod
     def plot_line(mlab, startPos, endPos, radius, color,tube_resolution=20):
         mlab.plot3d([startPos[0], endPos[0]],
@@ -197,6 +200,7 @@ class MoleculePlot():
         coord = self.apply_period(coord)
         print("After", coord.shape)
 
+        # 这里原本是得到绘制的全部pair，现在适当结合，搞成批量绘制的
         pair_index = self.get_bond_plot_index(coord)
 
 
