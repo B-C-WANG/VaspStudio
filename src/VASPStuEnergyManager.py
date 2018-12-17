@@ -3,11 +3,29 @@ import traceback
 import numpy as np
 from public import XVI_Status,Type
 
+
+'''
+存在一个bug，XVI文件的下一个循环可能使用上一个循环的数据，所以需要在添加else语句清零
+比如
+if info.startswith("energy  without entropy"):
+    info_ = info
+需要添加else:continue
+否则上一个的info_就会留下来
+
+
+但是这种情况一般是RMS没有的，RMS没有就无法判断是否收敛，能量也是无效的，所以RMS存在的时候保证了能量提取是可靠的
+也就是说，如果没有一个energy without entropy，也就没有RMS，提取出来的结果就是没有是否收敛的状态的
+但是如果一个文件是有原有数据，又重新投过的，RMS可能不更新，但是如果OUTCAR出错，能量可能会更新为上一个的
+
+'''
+
 class VASPFreqExtract():
     # 收敛过后的结果才提取Freq
     def freq_extract(self,xvi_items,freq_number):
 
             for xvi in xvi_items:
+
+
                 print(xvi.relative_xsd_file_name)
                 try:
                     if xvi.type != Type.Convergence : continue
@@ -24,6 +42,7 @@ class VASPFreqExtract():
                                         virtual_freq.append(float(i.split("cm-1")[0].split("THz ")[-1]))
                                     else:
                                         real_freq.append(float(i.split("cm-1")[0].split("THz ")[-1]))
+
                             if len(virtual_freq) == 0 and len(real_freq) == 0:
                                 continue
                             print(real_freq)
@@ -48,6 +67,8 @@ class VASPEnergyExtract():
         # link 过后的结果才处理能量
         # 只有original的才能提取能量和RMS
         for xvi in xvi_items:
+                energy = None # 不要让前一个的局部变量变到下一个去了
+                data = None
 
                 _type = getattr(xvi, "type", "")
                 if _type not in [ Type.Origin, Type.Convergence,Type.NotConvergence]: continue
@@ -56,11 +77,12 @@ class VASPEnergyExtract():
                         with open(xvi.local_vasp_dir + "/OUTCAR", "r") as f:
 
                             data = f.readlines()
-
+                        info_ = ""
                         for index, info in enumerate(data):
                             info = info.strip()
                             if info.startswith("energy  without entropy"):
                                 info_ = info
+
                         energy = info_.split("energy  without entropy=")[1].split("energy")[0]
                         xvi.energy = energy
                     except:
@@ -72,6 +94,8 @@ class VASP_RMS_Extract():
     # link过后的结果才处理RMS
     def final_RMS_extract(self, xvi_items,thushold):
         for xvi in xvi_items:
+
+
             _type = getattr(xvi,"type","")
             if _type != Type.Origin: continue
             if hasattr(xvi, "local_vasp_dir") == True and xvi.local_vasp_dir is not None and len(
@@ -80,6 +104,7 @@ class VASP_RMS_Extract():
                     with open(xvi.local_vasp_dir + "/OUTCAR", "r") as f:
                         data = f.readlines()
                         RMS_data = []
+                        _tmp = ""
                         for i in data:
                             if "RMS" in i:
                                 _tmp = i.replace("\n", "")
