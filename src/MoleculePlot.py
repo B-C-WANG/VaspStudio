@@ -8,8 +8,12 @@ http://docs.enthought.com/mayavi/mayavi/auto/example_chemistry.html#example-chem
 import os
 import warnings
 from traits.etsconfig.api import ETSConfig
-ETSConfig.toolkit = 'wx'
-os.environ['ETS_TOOLKIT'] = 'wx'
+
+
+toolkit = "wx"
+
+ETSConfig.toolkit = toolkit
+os.environ['ETS_TOOLKIT'] = toolkit
 
 import numpy as np
 #from mayavi.tools import engine_manager
@@ -156,6 +160,9 @@ class MoleculePlot():
         '''
 
         maya_figure = mlab.figure(1, bgcolor=self.background_color, size=(self.window_sizeX, self.window_sizeY))
+
+
+
         mlab.clf()
         scene = maya_figure.scene
 

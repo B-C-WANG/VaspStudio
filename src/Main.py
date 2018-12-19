@@ -23,9 +23,9 @@ import sys
 sys.setrecursionlimit(50000)
 from VASPStuEnergyManager import *
 
-from PyQt5.QtCore import QCoreApplication,QThread
-from PyQt5.QtWidgets import QTableWidgetItem,QTreeWidgetItem,QInputDialog,QComboBox,QDialog,QColorDialog,QMenu
-from PyQt5.QtGui import QBrush,QColor,QCursor,QIcon
+from PySide2.QtCore import QCoreApplication,QThread
+from PySide2.QtWidgets import QTableWidgetItem,QTreeWidgetItem,QInputDialog,QComboBox,QDialog,QColorDialog,QMenu
+from PySide2.QtGui import QBrush,QColor,QCursor,QIcon
 from SFTP_SSH_Utils import *
 from utils import *
 from VASPStuProject import *

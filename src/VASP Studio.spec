@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['MoleculePlot.py'],
+a = Analysis(['Main.py'],
              pathex=['C:\\Users\\wang\\Desktop\\VaspStudio\\src'],
              binaries=[],
              datas=[],
@@ -21,7 +21,7 @@ exe = EXE(pyz,
           a.scripts,
           [],
           exclude_binaries=True,
-          name='VASP Studio MoleculePlotTest',
+          name='VASP Studio',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
@@ -33,4 +33,4 @@ coll = COLLECT(exe,
                a.datas,
                strip=False,
                upx=True,
-               name='VASP Studio MoleculePlotTest')
+               name='VASP Studio')

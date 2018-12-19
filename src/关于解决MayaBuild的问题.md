@@ -1,4 +1,7 @@
 ## 最新
+- **尝试使用pkl来保存对象，之后读取对象来绘制--事实证明是不行的。在pyface中的base_toolkit中使用pkl保存toolkit object，然后先dump，之后load覆盖原来的object，没有问题，但是如果只是load而不dump的话就有问题，会提示没有实现某种方法，最后发现dump出来的对象和之前的对象是不一样的，有一个tvtk**
+- ![](https://i.imgur.com/wnJSxN6.png)这里面注释掉的前两行，注释掉就不能够运行，而没有注释掉则可以运行！
+- 先保证具有mayavi的模块能够编译，之后再说全软件的事情
 - 使用
 ```
 from traits.etsconfig.api import ETSConfig

@@ -1,7 +1,7 @@
-from PyQt5.QtWidgets import QListWidgetItem,QListWidget
+from PySide2.QtWidgets import QListWidgetItem,QListWidget
 from VSP_ItemCollection import *
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QFileDialog,QMessageBox
+from PySide2 import QtCore, QtGui, QtWidgets
+from PySide2.QtWidgets import QFileDialog,QMessageBox
 from JobSubmitItem import JobSubmit_item
 from Main import ProjectType,ProjectType_dict
 
