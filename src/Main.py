@@ -393,8 +393,11 @@ class Main():
             n.append(tw.columnWidth(i))
         expand_state_dict = {}
         # 存储是否expanded,注意需要使用node去获取信息
-        for key in self.tree_node_widget_item_info:
-            expand_state_dict[key] = self.tree_node_widget_item_info[key].isExpanded()
+        # 这里可能存在新建项目没有的情况
+        try:
+            for key in self.tree_node_widget_item_info:
+                expand_state_dict[key] = self.tree_node_widget_item_info[key].isExpanded()
+        except:pass
 
         self.vsp.xsd_tree_widget_param["expanded_status"] = expand_state_dict
         self.vsp.xsd_tree_widget_param["column_status"] = n
