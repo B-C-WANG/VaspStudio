@@ -16,6 +16,9 @@ os.environ['ETS_TOOLKIT'] = 'wx'
 #from pyface import base_toolkit
 #base_toolkit.import_toolkit("wx")
 #exit()
+# 检查投job的文件是不是在根目录下
+if not os.path.exists("submit_job_onserver.py"):
+    raise ValueError("You need submit job on server file in v0.22")
 
 
 
