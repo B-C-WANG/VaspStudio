@@ -44,6 +44,9 @@ xvi试图去获取这些字符串的attr，获取不到就是None
 然后运行python命令 
 
 '''
+# 检查投job的文件是不是在根目录下
+if not os.path.exists("submit_job_onserver.py"):
+    raise ValueError("You need submit job on server file in v0.22")
 
 
 # TODO：增加频率字典形式导出
