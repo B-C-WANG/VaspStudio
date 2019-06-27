@@ -1,10 +1,11 @@
-# -*- mode: python -*-
-
+# coding: utf-8
+import sys
+sys.setrecursionlimit(1000000) 
 block_cipher = None
 
 
 a = Analysis(['Main.py'],
-             pathex=['C:\\Users\\wang\\Desktop\\VaspStudio\\src'],
+             pathex=['C:\\Users\\wang\\Desktop\\VaspStudioDevelop\\VaspStudio\\src'],
              binaries=[],
              datas=[],
              hiddenimports=[],

@@ -3,9 +3,7 @@ from VSP_ItemCollection import *
 from PySide2 import QtCore, QtGui, QtWidgets
 from PySide2.QtWidgets import QFileDialog,QMessageBox
 from JobSubmitItem import JobSubmit_item
-from Main import ProjectType,ProjectType_dict
-
-
+from projectTypeAndChecker import ProjectType,ProjectType_dict
 
 class SubmitJobCreateWindow(object):
     def setupUi(self, CreateProject):
@@ -213,7 +211,6 @@ class SubmitJobCreateWindow(object):
         self.groupBox.setTitle(_translate("CreateProject", "Content"))
         self.submitJobRemove.setText(_translate("CreateProject", "Remove"))
 
-
 class KeyItemCreateWindow(object):
     def setupUi(self, Create):
         Create.setObjectName("Create")
@@ -257,8 +254,6 @@ class KeyItemCreateWindow(object):
         self.cancel.setText(_translate("Create", "cancel"))
         self.label_2.setText(_translate("Create", "Key"))
         self.label_3.setText(_translate("Create", "Value"))
-
-
 
 class TF_FunctionCreateWindow(object):
     def setupUi(self, Dialog):
@@ -319,7 +314,6 @@ class TF_FunctionCreateWindow(object):
                                                   "逗号分隔XYZ坐标进行测试"))
         self.test.setText(_translate("Dialog", "Test"))
         self.ok_2.setText(_translate("Dialog", "Cancel"))
-
 
 class FileCreateWindow(object):
     def setupUi(self, Create):
@@ -403,10 +397,6 @@ class TextFileCreateWindow(object):
         self.cancel.setText(_translate("Create", "cancel"))
         self.label_2.setText(_translate("Create", "File Name"))
 
-
-
-
-
 class ItemWindow():
     # 用于容纳各个item的窗口的类，有new Edit remove 和 check四个
     def __init__(self,
@@ -459,8 +449,6 @@ class ItemWindow():
             newItem = QListWidgetItem(self.vsp_items[keys[i]].item_key)
             self.widget.append(newItem)
             self.list_widget.addItem(newItem)
-
-
 
 class Text_File_Item_Window(ItemWindow):
     # 这是主要的类，方法是，创建时给出相应的button 和widget，以及vsp项目即可
@@ -549,10 +537,6 @@ class Text_File_Item_Window(ItemWindow):
                 del self.vsp.text_file_items[i.text()]
                 self.widget.remove(i)
                 self.update()
-
-
-
-
 
 class File_Item_Window(ItemWindow):
     # 这是主要的类，方法是，创建时给出相应的button 和widget，以及vsp项目即可
@@ -652,8 +636,6 @@ class File_Item_Window(ItemWindow):
                 del self.vsp.file_items[i.text()]
                 self.widget.remove(i)
                 self.update()
-
-
 
 class TF_Window(ItemWindow):
     # 这是主要的类，方法是，创建时给出相应的button 和widget，以及vsp项目即可
@@ -764,11 +746,6 @@ class TF_Window(ItemWindow):
                 self.widget.remove(i)
                 self.update()
 
-
-
-
-
-
 class Key_Item_Window(ItemWindow):
     # 这是主要的类，方法是，创建时给出相应的button 和widget，以及vsp项目即可
     def __init__(self,
@@ -856,8 +833,6 @@ class Key_Item_Window(ItemWindow):
                 del self.vsp.key_items[i.text()]
                 self.widget.remove(i)
                 self.update()
-
-
 
 class SubmitJob_Window(ItemWindow):
     # 这是主要的类，方法是，创建时给出相应的button 和widget，以及vsp项目即可

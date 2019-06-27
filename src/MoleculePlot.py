@@ -9,9 +9,7 @@ import os
 import warnings
 from traits.etsconfig.api import ETSConfig
 
-
 toolkit = "wx"
-
 ETSConfig.toolkit = toolkit
 os.environ['ETS_TOOLKIT'] = toolkit
 

@@ -1,7 +1,7 @@
 ## How To Plot Molecule in VaspStudio?
-![](https://i.imgur.com/9tW9xVB.png)
+![](./figs/fig4.png)
 ### Set plot config
-![](https://i.imgur.com/X4Ua20W.png)
+![](./figs/fig5.png)
 
 - atom\_radius\_config: 绘制某种原子的半径
 - atom\_color\_config: 某种原子的RGB值
@@ -11,4 +11,4 @@
 - window\_sizeX, window\_sizeY：一开始显示窗口的大小，用于方便快速截图
 - circle\_resolution：绘制球体时的分辨率，较高质量好，但是卡顿
 - tube\_resolution：绘制键的分辨率，较高质量好，但是卡顿
-![](https://i.imgur.com/CGgbeaX.png)
+![](./figs/fig6.png)

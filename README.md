@@ -1,9 +1,9 @@
 # VaspStudio
 An useful tool to submit your VASP job on HPC automatically, manage your jobs, extract eneries and export final structure to .xsd files.
 ## 软件截图
-![](https://i.imgur.com/NIYPnWP.png)
-![](https://i.imgur.com/Qgvj576.png)
-![](https://i.imgur.com/K3RhVTw.png)
+![](./figs/fig1.png)
+![](./figs/fig2.png)
+![](./figs/fig3.png)
 
 ## **推荐工作流程（重要）**
 在Material Studio摆结构--创建Vasp Studio任务，设置project path为Material Studio的Document路径--根据Vasp需求建立库文件--建立投job的配置--投job计算能量--收敛之后导出结构（未收敛可在Material Studio中改名，在Vasp Studio中Refresh后重投）--导出结构后会自动检测到收敛的结构并添加相应的收敛标志--使用收敛的结构投频率--导出频率信息，检测频率是否合格（注意：目前只有Type为收敛的结构才有能够检测频率）--如果频率合格，用之前收敛的结构再次导出，此时命名会加上一个数字（如0Convergence_...）--使用这个新导出的结构投其他任务，比如贝叶斯泛函计算任务。最终可批量导出OUTCAR以及频率字典（用作Catmap动力学计算或者CRN动力学并行筛选程序）
@@ -65,7 +65,8 @@ An useful tool to submit your VASP job on HPC automatically, manage your jobs, e
 - 用Qt的API进行查询，另外QtDesigner中修改控件属性后会在UI中有相应的代码，可以查阅
 - 很多控件是在UI创建的，所以在Main.py中看不到它的获取。
 - 在Main.py中控件没有代码补全，需要在UI_...py文件中找代码补全。
-
+## 注意事项
+- 在MacOS上安装Mayavi需要export QT_QPA_PLATFORM_PLUGIN_PATH=为Qt里面的platform
 
 ## How to contribute
 - if not familiar with submitting with github, just send your scripts to wangbch@shanghaitech.edu.cn, I will help merge your code to become one of the Contributors.
