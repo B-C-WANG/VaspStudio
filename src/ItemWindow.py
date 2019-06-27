@@ -435,15 +435,9 @@ class ItemWindow():
 
 
     def update(self):
-
         self.widget = []
         self.list_widget.clear()
-
-
-        print("update")
-
         keys = list(self.vsp_items.keys())
-        print(keys)
         vsp_n = len(keys)
         for i in range(vsp_n):
             newItem = QListWidgetItem(self.vsp_items[keys[i]].item_key)
@@ -879,14 +873,8 @@ class SubmitJob_Window(ItemWindow):
         for i in content_items:
             self.window_ui.contentWidget.addItem(i)
 
-
-
-
-
-
-
-
     def create(self):
+        # 删除现有的然后重新创建（用于edit）
         if self.remove_:
             del self.vsp.job_submit_items[self.remove_.text()]
             self.widget.remove(self.remove_)
@@ -906,7 +894,6 @@ class SubmitJob_Window(ItemWindow):
         projectType = ProjectType_dict[self.window_ui.projectTypeChoose.currentText()]
         len_c = len(self.window_ui.contentWidget)
         content_items = [self.window_ui.contentWidget.item(i) for i in range(len_c)]
-
 
         for i in [name, host, port, username, password, remote_project_path, projectType, content_items]:
             if len(i) == 0:
@@ -944,6 +931,7 @@ class SubmitJob_Window(ItemWindow):
         print(n)
         if n==0:return
         new_items = []
+        # remove采用的是把没有selected的append，然后清空再重新创建
         for i in range(n):
             if self.window_ui.contentWidget.item(i).isSelected() == False:
                 new_items.append(self.window_ui.contentWidget.item(i).text())
@@ -995,18 +983,9 @@ class SubmitJob_Window(ItemWindow):
             print(text_file.name)
             print(text_file.string)
 
-
-
-
-
-
-
-
-
     def edit_one(self):
         for i in self.widget:
             if i.isSelected():
-                # 先删除，再create
                 self.show(SubmitJobCreateWindow)
 
                 self.window_ui.submitJobCancel.clicked.connect(self.window.close)
@@ -1033,7 +1012,7 @@ class SubmitJob_Window(ItemWindow):
                 self.window_ui.projectTypeChoose.setCurrentIndex(0)
 
                 self.window_ui.submitJobOk.clicked.connect(self.create)
-
+                # 先删除，再重新create，点击OK后会删除remove_的，然后重新创建
                 self.remove_ = i
 
                 # reject 之后记住删除要remove的，否则edit之后new就会丢失

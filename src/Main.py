@@ -3,11 +3,8 @@
 # 全局设置
 
 # 添加分子三维展示功能
-ADD_MOLECULE_SHOW = False
+ADD_MOLECULE_SHOW = True
 
-
-
-import os
 '''
 关于项目目录设置：
 因为编译需要，所以不能使用from src.VaspXXX import 
@@ -16,41 +13,47 @@ import os
 解决方法：ide中project interpreter-下拉-show all 然后
 在右边侧边栏文件夹一样的图标中点开添加上当前的src目录
 '''
-if ADD_MOLECULE_SHOW:
-    # print(ETSConfig.toolkit)
-    # os.environ['QT_API'] = 'pyqt5'
-    from traits.etsconfig.api import ETSConfig
-    ETSConfig.toolkit = "wx"
-    os.environ['ETS_TOOLKIT'] = 'wx'
+
+import os
 
 # 检查投job的文件是不是在根目录下
 if not os.path.exists("submit_job_onserver.py"):
     raise ValueError("You need submit job on server file in v0.22")
+
+if ADD_MOLECULE_SHOW:
+    # print(ETSConfig.toolkit)
+    # os.environ['QT_API'] = 'pyqt5'
+    from traits.etsconfig.api import ETSConfig
+
+    ETSConfig.toolkit = "wx"
+    os.environ['ETS_TOOLKIT'] = 'wx'
+
 import copy
 import shutil
 import sys
 from VSP_ItemCollection import XSD_VASP_item
 from SFTP_SSH_Utils import SFTP_SSH_Utils
+
 sys.setrecursionlimit(50000)
-from VASPStuEnergyManager import VASPFreqExtract,VASP_RMS_Extract,VASPEnergyExtract
+from VASPStuEnergyManager import VASPFreqExtract, VASP_RMS_Extract, VASPEnergyExtract
 from PySide2.QtCore import QCoreApplication, QThread
-from PySide2 import QtWidgets,QtCore
+from PySide2 import QtWidgets, QtCore
 from PySide2.QtWidgets import QTableWidgetItem, QTreeWidgetItem, QInputDialog, \
-    QComboBox, QDialog, QColorDialog, QMenu,QMessageBox,QFileDialog
-from PySide2.QtGui import QBrush, QColor, QCursor, QIcon
+    QDialog, QColorDialog, QMenu, QMessageBox, QFileDialog
+from PySide2.QtGui import QBrush, QColor, QCursor
 from VASPStuProject import VASPStuProject
 import sys
-from ItemWindow import File_Item_Window,Text_File_Item_Window,TF_Window,Key_Item_Window,SubmitJob_Window
-
+from ItemWindow import File_Item_Window, Text_File_Item_Window, TF_Window, Key_Item_Window, SubmitJob_Window
 from VASPStuStructureManager import VASPStuStructureManager
-from VASPStuFileLinker import get_vasp_dir_in_dir,VASPStuFileLinker
+from VASPStuFileLinker import VASPStuFileLinker
+
 if ADD_MOLECULE_SHOW:
     from VASPStuMoleculeViewSubmit import submit_plot
 from Ui_about import Ui_about
 from Ui_CreateProject import Ui_CreateProject
 from Ui_VMainWindow import Ui_VASPStudio
 from Ui_SubmitJob import Ui_submitJob
-from public import Status,Type,Type_Color,STATUS_COLOR,Checker,XVI_Status
+from public import Status, Type, Type_Color, STATUS_COLOR, Checker, XVI_Status
 import traceback
 
 '''
@@ -118,15 +121,13 @@ class Main():
     def __init__(self, debug_mode=False):
         self.debug_mode = debug_mode
         self.xsd_files_item = []
-
+        # UI 创建
         self.main_window = QtWidgets.QMainWindow()
         self.main_window_ui = Ui_VASPStudio()
         self.main_window_ui.setupUi(self.main_window)
-
         self.create_project = QtWidgets.QDialog()
         self.create_project_ui = Ui_CreateProject()
         self.create_project_ui.setupUi(self.create_project)
-
         self.about_window = QtWidgets.QDialog()
         self.about_window_ui = Ui_about()
         self.about_window_ui.setupUi(self.about_window)
@@ -142,7 +143,7 @@ class Main():
         self.binding_main_window()
         self.binding_create_project_window()
 
-        # 注意header要多一行
+        # 注意header要多一行，header的string会用getattr来获得xvi items中的内容
         self.xsd_file_headers = ["File", "Status", "Type", "Mark", "Energy", "Final RMS", "Work Node", "Job",
                                  "Match State", "备注"]
         self.xsd_file_contents = ["status", "type", "mark_text", "energy", "final_RMS", "nodel", "submit_job",
@@ -158,8 +159,9 @@ class Main():
         QMessageBox.warning(self.main_window, "Warning", string)
 
     def generate_item_window(self):
-        # item的设定,item自动与vsp同步
-
+        '''
+        将vsp中保存的item更新到UI界面
+        '''
         self.text_item_window = Text_File_Item_Window(
             main_window=self.main_window,
             vsp=self.vsp,
@@ -217,7 +219,9 @@ class Main():
         self.job_submit_window.update()
 
     def refresh(self):
-        # 不只是更新，还要检测新文件
+        '''
+        检测新文件，更新xsd文件信息
+        '''
         self.check_file_change_and_update_file()
         self.update_xsd_files_information()
 
@@ -257,6 +261,7 @@ class Main():
         self.xsdFileRightMenu.exec_(QCursor.pos())
 
     def add_right_memu_to_xsdFileTreeWidget(self):
+        # 主要的函数action
         self.xsdFileRightMenu = QMenu(self.main_window_ui.xsdFileTreeWidget)
         self.a_view_action = self.xsdFileRightMenu.addAction("View Molecule")
         self.a_view_action.triggered.connect(self.submit_view_molecule)
@@ -444,12 +449,14 @@ class Main():
         return True
 
     def check_file_change_and_update_file(self):
+        '''
+        检测文件改动
+        '''
         new_files, deleted_files = self.vsp.check_and_add_new_xsd_files_and_generate_XVI()
         if new_files == False:  # 这个是由底层传来的，不只是文件，还有status以及错误信息
             # 这里newFiles是错误时传来的status，deletedFiles是信息
             QMessageBox.critical(self.main_window, "Error", deleted_files)
             return
-
         # 之所以需要self.vs.new_files，是因为希望在一开始创建项目时就保存项目
         if len(new_files) == 0 and len(deleted_files) == 0: return
         string = ""
@@ -611,15 +618,11 @@ class Main():
             return
 
     def update_project_information(self):
-
         try:
-
             tw = self.main_window_ui.tableWidgetProjectInformation
             tw.setHorizontalHeaderLabels(["Property", "Value"])
             info_x = [
-
                 "Local Project Path",
-
             ]
             info_y = [
                 self.vsp.local_project_dir,
@@ -636,10 +639,13 @@ class Main():
                                     "No project information, please create New or Open one.")
 
     def check(self, window, checker):
-        # 专门用于相应check函数的
-        # 如果为False，需要有error msg
-        # 如果单为True，pass
-        # 如果为True且有附加信息，返回它们
+        '''
+        专门用于相应check函数的
+        如果为False，需要有error msg
+        如果单为True，pass
+        如果为True且有附加信息，返回它们
+        '''
+
         assert isinstance(checker, Checker)
         if checker.window_status == Status.INFO:
             QMessageBox.information(window, "Information", checker.window_string)
@@ -824,7 +830,7 @@ class Main():
         xvis = self.vsp.get_XVI_from_relative_xsd_files(self.selected_items)
         freq = QInputDialog(self.main_window)
         freq = freq.getText(self.main_window, "输入虚频允许的数目", "虚频数目")[0]
-        VASPFreqExtract().freq_extract(xvis, int(freq))
+        VASPFreqExtract.freq_extract(xvis, int(freq))
         self.update_xsd_files_information()
 
     def submit_view_molecule(self):
@@ -854,22 +860,20 @@ class Main():
                 return
 
     def submit_mark(self):
+        '''
+        拿出来xvi item，修改其中的attr，然后update
+        '''
         if self.xsd_files_item == []: return
         self.selected_items = []
         for i in self.xsd_files_item:
             if i.isSelected():
                 self.selected_items.append(str(i.file_path))
         xvis = self.vsp.get_XVI_from_relative_xsd_files(self.selected_items)
-        # TODO： 一定要记住，Dialog返回的是一个元组！！！
+        # Dialog返回的是一个元组
         col = QColorDialog.getColor(parent=self.main_window, title="选择一个mark颜色")
 
         text = QInputDialog.getText(self.main_window, "输入mark内容", "标注")[0]
         if text == "": return
-        print(123123)
-        print(col.value())
-
-        print(text)
-
         for i in xvis:
             i.mark_text = text
             i.mark_color = (col.rgb())
@@ -1030,7 +1034,7 @@ class Main():
                 self.selected_items.append(str(i.file_path))
         xvis = self.vsp.get_XVI_from_relative_xsd_files(self.selected_items)
 
-        VASP_RMS_Extract().final_RMS_extract(xvis, thushold)
+        VASP_RMS_Extract.final_RMS_extract(xvis, thushold)
         self.update_xsd_files_information()
         self.save_project()
 
@@ -1044,7 +1048,7 @@ class Main():
             if i.isSelected():
                 self.selected_items.append(str(i.file_path))
         xvis = self.vsp.get_XVI_from_relative_xsd_files(self.selected_items)
-        VASPEnergyExtract().energy_extract(xvis)
+        VASPEnergyExtract.energy_extract(xvis)
         self.update_xsd_files_information()
         self.save_project()
 

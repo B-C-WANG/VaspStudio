@@ -7,5 +7,5 @@
 
 # bug解决
 - 递归深度超出限制：在spec中添加递归深度变为更大
-- 遇到问题UnicodeDecodeError，解决方法是命令行先输出chcp 65001，然后运行
+- 遇到问题UnicodeDecodeError，解决方法是命令行先chcp 65001，然后运行
 - 运行时显示导入Pyside失败：修改pyinstaller将PySide改为PySide2，然后重新编译！
