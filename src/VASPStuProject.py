@@ -35,6 +35,7 @@ class VASPStuProject(object):
         try:
             a = pickle_decrypt_from_file(path, key)
             VASPStuProject.after_load(a)
+            # check成功后会return出来实例a
             return Checker(Status.PASS, output=a)
         except:
             traceback.print_exc()
@@ -118,19 +119,16 @@ class VASPStuProject(object):
         # 注意这里不用append，创建后自动会加上
         pass
 
-    # 由于线程锁定，所以只能用return的方式来得到相应的信息
+
     def update_xvi_item_info(self, ):
         '''
-
+        由于线程锁定，所以只能用文件io的方式获得信息
         example:
         dict{
         "1.xsd":{"nodel":123}
         }
-
-
         :param dict_:
         :return:
-
         '''
         with open(self.local_project_dir + "/" + "temp", "r") as f:
             dict_ = json.load(f)

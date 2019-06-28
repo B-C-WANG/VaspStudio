@@ -1,12 +1,16 @@
 "QTAVASP-SubmitJobOnServer"
 # -*- coding: utf-8 -*-
+'''
+这个文件是vasp studio的v0.1版本的主要内容，使用脚本自动化根据xsd文件来投job
 
+这个文件在投job的时候被上传到server上，然后连同包含job的信息一起上传，
+之后server端会运行这个文件来投job，投完之后会将返回信息写入一个文件中，
+下载这个文件然后更新本地model和view
+'''
 import os
 import copy
 import time
 import math
-
-import sys
 
 try:
     import xml.etree.cElementTree as ET
@@ -234,6 +238,9 @@ def error(string):
 
 
 class XSD_Extract(object):
+    '''
+    从Material Studio中提取xsd文件（xml文件格式）的信息，然后得到三维坐标，写入POSCAR
+    '''
 
     def __init__(self, xsd_files, base_xsd_dir, base_POSCAR_dir, TF_condition_func, project_type,base_fort188_path=None):
 
@@ -324,16 +331,14 @@ class XSD_Extract(object):
                 a_data[i.get("ID")] = data
 
                 atom_index += 1
-            print("atom dict")
-            print(a_data)
+
 
             space_group = imapping.find("SpaceGroup")
             sdata = {}
             sdata["AVector"] = space_group.get("AVector")
             sdata["BVector"] = space_group.get("BVector")
             sdata["CVector"] = space_group.get("CVector")
-            print("space group info")
-            print(sdata)
+
 
             self.total_data[file_name]["space_group"] = sdata
 

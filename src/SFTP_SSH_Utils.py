@@ -33,6 +33,7 @@ class SFTP_SSH_Utils:
 
 
     def ssh_run_command(self,command_list,time_sleep_between=0.1):
+        # 每间隔between秒执行命令，阻塞直到执行成功
         print("command_list",command_list)
         if type(command_list) == tuple:command_list = command_list[0]
         ssh = paramiko.SSHClient()

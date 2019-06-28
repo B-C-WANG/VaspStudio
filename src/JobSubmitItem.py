@@ -93,13 +93,14 @@ class JobSubmit_item(VSP_Item):
             info_dict = None
             key_items, text_file_items, file_items, TF_function_items = self.transform_items(self.item_keys)
             self.XVI_items = XVI_items[0]
-            # TODO 这里按照project type进行check
+            # 创建文件和上传文件！
             self.submit_job_file_check()
             self.create_base_files(text_file_items, file_items)
             self.create_remote_project_data(TF_function_items, key_items)
             status = self.upload_all_info_to_remote().status
             if status == Status.PASS:
                 #  注意：一旦进行到这一步，debug就可以直接在服务器上运行脚本进行了
+                #  这里的run script会调用ssh，然后会阻塞主线程直到ssh那边返回
                 status = self.run_remote_script()
             else:
                 status = 0
@@ -112,22 +113,16 @@ class JobSubmit_item(VSP_Item):
     def update_XVI_nodel_info(self):
 
         self.node_info = self.down_load_and_read_nodel_dir_file()
-        print(self.node_info)
         if self.node_info == False: return False
-        print("NI", len(self.node_info), self.node_info)
         info_dict_ = {}
         for i in self.node_info:
-            print("split", i, self.remote_project_dir)
             rela = i.split(self.remote_project_dir)[-1]
             rela = rela.replace("//", "/", 99).split("_" + self.project_type)[0]
-
             info_dict_[rela] = {}
             info_dict_[rela]["nodel"] = str(self.node_info[i])
             info_dict_[rela]["status"] = str(XVI_Status.Submitted)
             info_dict_[rela]["submit_job"] = str(self.item_key)
 
-        # self.vsp.save_project_info(path=os.getcwd())
-        print("Done")
         # 为了解决线程锁无法获得信息的问题，直接采用json写出信息，然后再导入
         with open(self.vsp.local_project_dir + "/" + "temp", "w") as f:
             json.dump(info_dict_, f)
@@ -182,8 +177,9 @@ class JobSubmit_item(VSP_Item):
                 "python  %s/submit_job_onserver.py" % self.remote_project_dir
 
             ])
+            # 这里会阻塞直到返回
             print(a)
-            print(b)
+            #print(b)
             print(c)
             return 1
         except:

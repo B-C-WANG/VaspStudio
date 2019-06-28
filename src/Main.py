@@ -7,12 +7,32 @@ ADD_MOLECULE_SHOW = True
 
 '''
 关于项目目录设置：
-因为编译需要，所以不能使用from src.VaspXXX import 
-而是直接from VaspXXX import
-因此pycharm ide会出现找不到的情况，而实际上又能够顺利运行
-解决方法：ide中project interpreter-下拉-show all 然后
-在右边侧边栏文件夹一样的图标中点开添加上当前的src目录
+    因为编译需要，所以不能使用from src.VaspXXX import 
+    而是直接from VaspXXX import
+    因此pycharm ide会出现找不到的情况，而实际上又能够顺利运行
+解决方法：
+    ide中project interpreter-下拉-show all 然后
+    在右边侧边栏文件夹一样的图标中点开添加上当前的src目录
+
+树形列表中的UI读取模型的设计：
+    标题是字符串，
+    xvi试图去获取这些字符串的attr，获取不到就是None
+    扩展一个新功能：
+        使用xvi传参，修改xvi参数，
+        然后在self.xsd_file_contents中加上这个标题栏即可，
+        之后update_xsd_file_information自己会根据标题栏的这些字符串去获取attr显示
+    所有与UI显示相关的信息，全部存储在XVI实例中
+    每次pickle保存这些信息
+
+关于投job：
+    将一个job需要的文件和xvi相关的信息写入的json文件，以及投job的python脚本上传到云端
+    然后运行python命令     
+
 '''
+
+# TODO: 增加自动下载功能
+# TODO： 虚频的英文单词有误，不能为virtual_freq，而应该是imaginary freq
+
 
 import os
 
@@ -27,6 +47,7 @@ if ADD_MOLECULE_SHOW:
 
     ETSConfig.toolkit = "wx"
     os.environ['ETS_TOOLKIT'] = 'wx'
+    from VASPStuMoleculeViewSubmit import submit_plot
 
 import copy
 import shutil
@@ -46,31 +67,12 @@ import sys
 from ItemWindow import File_Item_Window, Text_File_Item_Window, TF_Window, Key_Item_Window, SubmitJob_Window
 from VASPStuStructureManager import VASPStuStructureManager
 from VASPStuFileLinker import VASPStuFileLinker
-
-if ADD_MOLECULE_SHOW:
-    from VASPStuMoleculeViewSubmit import submit_plot
 from Ui_about import Ui_about
 from Ui_CreateProject import Ui_CreateProject
 from Ui_VMainWindow import Ui_VASPStudio
 from Ui_SubmitJob import Ui_submitJob
 from public import Status, Type, Type_Color, STATUS_COLOR, Checker, XVI_Status
 import traceback
-
-'''
-树形列表中的UI读取模型的设计：
-    标题是字符串，
-    xvi试图去获取这些字符串的attr，获取不到就是None
-    扩展一个新功能：
-        使用xvi传参，修改xvi参数，
-        然后在self.xsd_file_contents中加上这个标题栏即可，
-        之后update_xsd_file_information自己会根据标题栏的这些字符串去获取attr显示
-    所有与UI显示相关的信息，全部存储在XVI实例中
-    每次pickle保存这些信息
-
-关于投job：
-    将一个job需要的文件和xvi相关的信息写入的json文件，以及投job的python脚本上传到云端
-    然后运行python命令 
-'''
 
 # 默认的分子绘图设置
 default_molecule_view_setting_text = \
@@ -114,14 +116,11 @@ default_molecule_view_setting_text = \
     '''
 
 
-# TODO: 增加自动下载功能
-# TODO： 虚频的英文单词有误，不能为virtual_freq，而应该是imaginary freq
-
 class Main():
     def __init__(self, debug_mode=False):
         self.debug_mode = debug_mode
         self.xsd_files_item = []
-        # UI 创建
+        # UI 创建，UI使用qt designer设计得到.ui文件，使用pyuic或者ide(pycharm亦可)导出py，构造后引用
         self.main_window = QtWidgets.QMainWindow()
         self.main_window_ui = Ui_VASPStudio()
         self.main_window_ui.setupUi(self.main_window)
@@ -131,7 +130,7 @@ class Main():
         self.about_window = QtWidgets.QDialog()
         self.about_window_ui = Ui_about()
         self.about_window_ui.setupUi(self.about_window)
-
+        # 固定大小
         self.main_window.setFixedSize(self.main_window.width(), self.main_window.height())
 
         self.last_save_path = None
@@ -140,6 +139,7 @@ class Main():
         # 控制台输出，等同于GUI界面的控制台输出结果，用于分析
         self.command_output = ""
 
+        # 绑定ui中的按钮和函数
         self.binding_main_window()
         self.binding_create_project_window()
 
@@ -160,7 +160,8 @@ class Main():
 
     def generate_item_window(self):
         '''
-        将vsp中保存的item更新到UI界面
+        main window中已经创建了UI，现在把里面的子window的ui组件(按钮为主)分配到ItemWindow中，用于添加函数增加控制行为
+        同时将vsp中保存的item更新到UI界面，Model -> View
         '''
         self.text_item_window = Text_File_Item_Window(
             main_window=self.main_window,
@@ -226,6 +227,9 @@ class Main():
         self.update_xsd_files_information()
 
     def binding_main_window(self):
+        '''
+        绑定菜单栏的函数
+        '''
         # 绑定打开项目对话框
         self.main_window_ui.actionNewProject.triggered.connect(self.create_project.show)
         self.main_window_ui.tabProjectInformationRefreshButton.clicked.connect(self.update_project_information)
@@ -258,23 +262,30 @@ class Main():
         self.add_right_memu_to_xsdFileTreeWidget()
 
     def show_xsdFile_right_menu(self):
+        '''
+        右键行为
+        '''
         self.xsdFileRightMenu.exec_(QCursor.pos())
 
     def add_right_memu_to_xsdFileTreeWidget(self):
-        # 主要的函数action
+        '''
+        绑定右键按键函数，分类
+        '''
+        # 右键菜单
         self.xsdFileRightMenu = QMenu(self.main_window_ui.xsdFileTreeWidget)
+        # 分子展示
         self.a_view_action = self.xsdFileRightMenu.addAction("View Molecule")
         self.a_view_action.triggered.connect(self.submit_view_molecule)
-        self.xsdFileRightMenu.addSeparator()
-        # mark
+        self.xsdFileRightMenu.addSeparator()  # 分隔符
+        # 任务mark
         self.a_mark_action = self.xsdFileRightMenu.addAction("Mark")
         self.a_mark_action.triggered.connect(self.submit_mark)
         self.xsdFileRightMenu.addSeparator()
-        # submit job
+        # 提交任务
         self.a_submit_job = self.xsdFileRightMenu.addAction("Submit Job")
         self.a_submit_job.triggered.connect(self.submit_job)
         self.xsdFileRightMenu.addSeparator()
-        # status control
+        # 任务状态控制
         self.m_status_control = self.xsdFileRightMenu.addMenu("Status")
         self.a_turn_not_submit = self.m_status_control.addAction("Turn Not Submit")
         self.a_turn_not_submit.triggered.connect(self.change_to_not_submit)
@@ -285,13 +296,13 @@ class Main():
         # download TODO：
 
         pass
-        # local link
+        # 本地文件关联
         self.m_local_link = self.xsdFileRightMenu.addMenu("Local Link")
         self.a_by_path = self.m_local_link.addAction("By Path")
         self.a_by_name = self.m_local_link.addAction("By Name")
         self.a_by_name.triggered.connect(self.submit_file_link_by_name)
         self.a_by_path.triggered.connect(self.submit_file_link_by_path)
-        # information
+        # vasp文件的信息提取
         self.m_information = self.xsdFileRightMenu.addMenu("Information")
         self.a_rms = self.m_information.addAction("Final RMS")
         self.a_energy = self.m_information.addAction("Final Energy")
@@ -306,12 +317,11 @@ class Main():
         self.a_energy.triggered.connect(self.submit_energy_collect)
         self.a_freq.triggered.connect(self.submit_freq_extract)
         self.a_grep.triggered.connect(self.submit_grep_command)
-        # structure
+        # 结构导出
         self.m_structure = self.xsdFileRightMenu.addMenu("Structure")
         self.a_structure_export = self.m_structure.addAction("Export Final Structure")
         self.a_structure_export.triggered.connect(self.submit_structure_export)
-
-        # file control
+        # 导出信息到文件
         self.m_file_control = self.xsdFileRightMenu.addMenu("File")
         self.a_outcar_export = self.m_file_control.addAction("Export OUTCAR in dir")
         self.a_outcar_export.triggered.connect(self.submit_outcar_export)
@@ -320,10 +330,13 @@ class Main():
 
         self.main_window_ui.xsdFileTreeWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.main_window_ui.xsdFileTreeWidget.customContextMenuRequested.connect(self.show_xsdFile_right_menu)
-
+        # 双击一个item，绘制分子
         self.main_window_ui.xsdFileTreeWidget.doubleClicked.connect(self.submit_view_molecule)
 
     def open_xsd_file(self):
+        '''
+        将xsd文件用外部程序，如Material Studio打开
+        '''
         for i in self.xsd_files_item:
             if i.isSelected():
                 print(i.file_path)
@@ -334,23 +347,30 @@ class Main():
                 break
 
     def binding_create_project_window(self):
-
-        # 将文件对话框函数绑定并获得相应值到类成员变量中
-        # self.create_project_ui.localBaseFilePathButton.\
-        #    clicked.connect(self.file_dialog_local_base_file)
+        '''
+        project create windows的函数绑定
+        '''
 
         self.create_project_ui.localProjectPathButton.clicked.connect(
             self.file_dialog_local_project_path)
-
         # 直接将ok按钮绑定创建project，如果不合理会弹出警告，合理会创建然后close
         self.create_project_ui.projectOkButton.clicked.connect(self.create_vs_project)
         pass
 
     def load_vs_project(self):
+        '''
+        载入项目文件，原先设计有密码，现在关闭密码，为了兼容设置固定密码为123(用于加密)
+        '''
 
-        vsp_file = self.file_dialog_vsp_file()[0]
+        vsp_file = QFileDialog.getOpenFileName(
+            self.main_window,
+            "Open .vsp file",
+            "C:/",
+            "VASP Studio Project File (*.vsp)"
+        )[0]
+
         if len(vsp_file) == 0: return
-        # 先尝试默认密码123
+        # 默认密码123，载入得到vsp实例
         vs = self.check(self.main_window, VASPStuProject.read_existing_project(vsp_file, "123"))
         if vs == Status.FAILED:
             key = \
@@ -358,19 +378,18 @@ class Main():
                                                        "Project Key")[0]
             vs = self.check(self.main_window, VASPStuProject.read_existing_project(vsp_file, key))
             self.vsp = vs
-
         elif isinstance(vs, VASPStuProject):
             self.vsp = vs
-            # QMessageBox.information(self.main_window, "Information", "Success.")
         self.after_open_or_load()
 
     def create_vs_project(self):
+        '''
+        创建项目，从文件浏览窗口中获得路径text来创建
+        '''
         try:
-
             self.local_project_path = self.create_project_ui.localProjectPathEdit.text()
         except:
             QMessageBox.critical(self.create_project, "Error", "Not complete")
-            # return是必要的，否则会直接执行下一个语句，报错会直接关掉程序
             return
 
         self.vsp = VASPStuProject(local_project_dir=self.local_project_path,
@@ -386,22 +405,28 @@ class Main():
         # if self.project_check() == False: return
 
         self.create_project.close()
-
         self.after_open_or_load()
-        # QMessageBox.information(self.main_window,"提示","项目建立完成，请重新打开并载入\ndue to thread lock error of deepcopy(vs_dc)")
-        # app.quit()
 
     def after_open_or_load(self):
+        '''
+        打开或者载入项目后的行为
+        '''
         # 旧版本vsp文件更新
         self.vsp.update_old_version()
+        # 更新分子设置
         self.update_molecule_view_plot_settings()
+        # 文件改动
         self.check_file_change_and_update_file()
+        # ui信息更新
         self.update_project_information()
         self.update_xsd_files_information()
+        # 窗口添加
         self.generate_item_window()
 
     def update_molecule_view_plot_settings(self):
         if ADD_MOLECULE_SHOW == False:
+            self.main_window_ui.moleculeViewSettingsText.setPlainText('''分子绘制功能未打开''')
+            self.main_window_ui.moleculeViewSettingsText.setReadOnly(True)
             return
         try:
             self.main_window_ui.moleculeViewSettingsText.setPlainText(self.vsp.molecule_view_setting_text)
@@ -410,10 +435,13 @@ class Main():
             traceback.print_exc()
 
     def save_project(self):
+        '''
+        项目文件保存，使用pickle
+        '''
+        if self.vsp is None:
+            return
 
-        if self.vsp == None: return
-
-        if self.vsp.class_data_save_path == None:
+        if self.vsp.class_data_save_path is None:
             path = QFileDialog.getSaveFileName(
                 self.main_window,
                 "Save .vsp file",
@@ -432,13 +460,13 @@ class Main():
         for i in range(tw.columnCount()):
             n.append(tw.columnWidth(i))
         expand_state_dict = {}
-        # 存储是否expanded,注意需要使用node去获取信息
-        # 新创建的文件会有问题，尝试这一个
+        # 存储文件树展开的情况,注意需要使用node去获取信息
         try:
             for key in self.tree_node_widget_item_info:
                 expand_state_dict[key] = self.tree_node_widget_item_info[key].isExpanded()
         except:
             pass
+        # 存储展开信息和标题栏宽度
         self.vsp.xsd_tree_widget_param["expanded_status"] = expand_state_dict
         self.vsp.xsd_tree_widget_param["column_status"] = n
         self.vsp.molecule_view_setting_text = self.main_window_ui.moleculeViewSettingsText.toPlainText()
@@ -478,13 +506,16 @@ class Main():
 
     def update_item_information(self):
         # 选中后增加具体的信息
-        if self.xsd_files_item == []: return
+        if self.xsd_files_item == []:
+            return
         self.selected_items = []
         for i in self.xsd_files_item:
+            # 选中的对象
             if i.isSelected():
                 xvis = self.vsp.get_XVI_from_relative_xsd_files([str(i.file_path)])[0]
                 content = ""
                 for key in xvis.__dict__:
+                    # getattr的字符串
                     if key in ["local_vasp_dir",
                                "energy",
                                "final_RMS",
@@ -508,51 +539,48 @@ class Main():
     def update_xsd_files_information(self):
         '''
         update 函数直接与vs类关联，得到所有的文件类，这样只用update就能更新最新
-        :return:
         '''
-
         if self.vsp == None:
             QMessageBox.information(self.main_window, "提示", "没有加载项目，无法获得xsd文件")
             return
         self.xsd_files_item = []
-
         try:
             filenames = list(self.vsp.relative_path_XVI_dict.keys())
             filenames = sorted(filenames)
             tw = self.main_window_ui.xsdFileTreeWidget
-
             index = 0
             tw.clear()
-            # TODO :这里让用户自选显示的顺序和内容
             tw.setHeaderLabels(self.xsd_file_headers)
             tw.setColumnCount(len(self.xsd_file_headers))
             file_name_item_dict = {}
             root = QTreeWidgetItem(tw)
             root.setText(0, self.vsp.local_project_dir)
-
+            # 创建文件树
             for file in filenames:
-
+                # 根，也就是项目目录
                 l = [root]
-                trees = file.split("/")[1:]  # 第一个元素是“”，是root
+                # 之后的文件树相对于项目目录
+                trees = file.split("/")[1:]
 
                 # 按照文件目录树进行，如果能够获取到子集就开始增加内容，否则增加child
-                for i in range(len(trees) + 1):  # 对于剩下的child
+                for i in range(len(trees) + 1):
+                    # 每次+1地获取后面几层的文件，比如这里的node name分别为： a -> a/c -> a/c/d
                     node_name = "/".join(trees[:i])
                     try:  # 尝试找到这个node，如果没有就创建
                         node = file_name_item_dict[node_name]
-
                     except:
                         # 创建child node，加入到字典中
                         node = QTreeWidgetItem(l[-1])
                         index += 1
+                        # 注意text设置为最后一个，比如a/c/d就是d，a/c就是c
                         node.setText(0, node_name.split("/")[-1])
                         file_name_item_dict[node_name] = node
                         try:
                             # 这里面的每个显示都是直接从xvi信息中获取，然后设置
-                            # 这里如果node能够获取到文件，就开始加上文件信息，否则就是空的只作为有内容的node的parent
+                            # 这里如果node能够获取到文件（没有KeyError），就开始加上文件信息，否则就是空的只作为parent
                             xvi_item = self.vsp.relative_path_XVI_dict["/" + node_name]
                             for i in range(len(self.xsd_file_contents)):
-                                # if getattr(xvi_item,"type","") == "":xvi_item.type = Type.Origin
+                                # 这里node按照content的顺序，把内容要么getattr拿到然后设置字符串，要么判断content的名称然后拿到内容设置
                                 node.setText(i + 1, getattr(xvi_item, self.xsd_file_contents[i], "None"))
                                 if self.xsd_file_contents[i] == "status":
                                     # 这些set使用index进行的，所以先判断是不是在相应的列，也可改成名称为key，value为index
@@ -578,11 +606,17 @@ class Main():
                         except:
                             traceback.print_exc()
                     l.append(node)
-
+                    # 采用类似队列的方法遍历，addChild
                     l[-2].addChild(l[-1])
 
+            # 存储node信息，用于接下来进行node的扩展
+            self.tree_node_widget_item_info = file_name_item_dict
+
             def load_column_status():
-                # 这里设置列的长度，首先用一个变量去存储这些列，存储在save project中
+                '''
+                载入save project中保存的标题栏宽度信息
+                '''
+
                 try:
                     info = self.vsp.xsd_tree_widget_param["column_status"]
                     for i in range(tw.columnCount()):
@@ -590,15 +624,14 @@ class Main():
                 except:
                     return
 
-            load_column_status()
-            # 把node的信息存储一下！用于接下来搞node的扩展
-            self.tree_node_widget_item_info = file_name_item_dict
-
-            # 这里我们用一个与tree node widget 。。key一模一样的字典去存储node的expand信息，之后
-            # 用这个key去获取node以及node的expand信息然后修改！
-            def expand():  # 存储各个列的expand情况
+            def load_expand():
+                '''
+                载入save project中保存的文件树展开信息
+                '''
                 try:
+                    # 使用"expanded_status"作为key去存储widget的信息
                     info = self.vsp.xsd_tree_widget_param["expanded_status"]
+                    # 先展开所有，按照按照设置去unexpand
                     tw.expandAll()
                     for key in self.tree_node_widget_item_info.keys():
                         try:
@@ -608,8 +641,8 @@ class Main():
                 except:
                     pass
 
-            expand()
-            print(tw.rootIndex())
+            load_column_status()
+            load_expand()
             return
 
         except:
@@ -618,6 +651,9 @@ class Main():
             return
 
     def update_project_information(self):
+        '''
+        从model中更新信息到UI
+        '''
         try:
             tw = self.main_window_ui.tableWidgetProjectInformation
             tw.setHorizontalHeaderLabels(["Property", "Value"])
@@ -645,7 +681,6 @@ class Main():
         如果单为True，pass
         如果为True且有附加信息，返回它们
         '''
-
         assert isinstance(checker, Checker)
         if checker.window_status == Status.INFO:
             QMessageBox.information(window, "Information", checker.window_string)
@@ -658,26 +693,12 @@ class Main():
         elif checker.status == Status.PASS:
             return checker.output_
 
-    def file_dialog_vsp_file(self):
-        return QFileDialog.getOpenFileName(
-            self.main_window,
-            "Open .vsp file",
-            "C:/",
-            "VASP Studio Project File (*.vsp)"
-        )
-
     def file_dialog_local_project_path(self):
         self.local_project_path = QFileDialog.getExistingDirectory()
         self.create_project_ui.localProjectPathEdit.setText(self.local_project_path)
 
-    # TODO ：下面是根据选定的item进行提交job的操作，代码有很大冗余，可以精简
-    #  思路：按钮联系，提供文件，然后更新VASP Item的属性
-
-    def submit_update(self):
-        raise NotImplementedError
-        self.run_command(["qstat -a"])
-        if self.command_output is None or len(self.command_output) == 0:
-            return
+    # ————————从下面开始都是submit操作，具体思路:以xvi item传参，修改xvi item的参数，然后更新UI————————
+    # ————————建议所有submit操作都开另一个线程进行
 
     def submit_grep_command(self):
         if self.xsd_files_item == []: return
@@ -695,9 +716,7 @@ class Main():
                 if command == "": return
                 try:
                     command_ = "findstr %s %s" % (command, a)
-                    print(command_)
                     return_ = os.popen(command_).read()
-                    print(return_)
                     self.main_window_ui.commandOutput.setText(str(return_))
                     return
                 except:
@@ -740,6 +759,7 @@ class Main():
                 return
 
             def ok():
+                # 这里OK函数是后面创建了submit对话框过后调用
                 job_submit = ui.chooseJobSubmit.currentText()
                 if job_submit == "":
                     QMessageBox.information(a, "提示", "选择一个Job Submit配置")
@@ -757,9 +777,6 @@ class Main():
                             password=job_submit.password
                         )
                         a, b, c = sf.ssh_run_command(args)
-                        print(a)
-                        print(b)
-                        print(c)
                         return a, b, c, 1
 
                     class SJT(QThread):
@@ -770,7 +787,6 @@ class Main():
                             self.args = args
 
                         def run(self):
-                            print(self.args)
                             self.output = command_run(self.args[0])
                             self.status = self.output[3]
                             self.output = self.output[:3]
@@ -781,45 +797,47 @@ class Main():
                     try:
                         thread = SJT(job_submit, command_list)
                         thread.start()
-
                         while True:
-
+                            # 一直获取thread对象的参数，注意如果一直都是None的话，那么线程会一直卡在这里，
+                            #  但是status是从run command那里过来，因此一定会改变status
                             q = thread.status
                             if q == None:
+                                # 没有获取到就一直更新等待UI
                                 QCoreApplication.processEvents()
                                 continue
-
+                            # 成功获取
                             elif q == 1:
                                 try:
                                     string = ""
                                     for i in thread.output[1]:
                                         string += str(i, encoding="utf-8") + "\n"
-                                    # 提交成功才更新节点信息
+                                    # 更新信息
                                     self.main_window_ui.commandOutput.setText(string)
                                     self.command_output = string
                                     return
 
                                 except:
                                     traceback.print_exc()
-
                                     QMessageBox.information(self.main_window, '提示', "command运行失败")
                                     return
-
+                            else:
+                                QMessageBox.information(self.main_window, '提示', "command运行失败")
+                                return
                     except:
                         traceback.print_exc()
 
+            # 增加job submit的对话框，绑定前面的OK函数
             a = QDialog()
             ui = Ui_submitJob()
             ui.setupUi(a)
             for i in self.vsp.job_submit_items:
+                # 增加下拉框的item
                 ui.chooseJobSubmit.addItem(i)
             a.show()
             ui.submitJobOK.clicked.connect(ok)
 
         except:
             traceback.print_exc()
-
-    # TODO: 编写逻辑架构，对于所有选中item，设定allow status和allow type，设定之后进行的参数，设定是否多线程等等
 
     def submit_freq_extract(self):
         if self.xsd_files_item == []: return
@@ -846,7 +864,7 @@ class Main():
 
                 xvis = self.vsp.get_XVI_from_relative_xsd_files(self.selected_items)[0]
 
-                # 不管多不多线程，现在的问题是，显示之后会退出
+                # TODO：尝试另一个线程更新
                 # s = threading.Thread(target=thread_submit_plot)
                 # s.start()
                 # thread_submit_plot()
@@ -949,7 +967,6 @@ class Main():
 
     def submit_export_freq_to_dict(self):
         # 这个是专用于catmap对接的，之后根据catmap对接情况修改
-
         string = "frequency_dict={"
         if self.xsd_files_item == []: return
         self.selected_items = []
@@ -975,7 +992,6 @@ class Main():
         with open(path, "w") as f:
             f.write(string)
 
-    # 不建议导出csv然后excel打开，因为软件本身定位就是取代这个功能
     def submit_information_export(self):
         string = ""
         if self.xsd_files_item == []: return
@@ -1018,7 +1034,6 @@ class Main():
         self.update_xsd_files_information()
 
     def submit_RMS_extract(self):
-
         thushold = QInputDialog(self.main_window)
         thushold = thushold.getText(self.main_window, "输入RMS收敛阈值", "RMS收敛阈值")[0]
         try:
@@ -1026,7 +1041,6 @@ class Main():
         except:
             self.main_window_info("Invalid Input")
             return
-        # QMessageBox.information(self.main_window,"提示","提取时间可能较长，程序可能未响应。") # TODO：使用多线程解决这个问题，
         if self.xsd_files_item == []: return
         self.selected_items = []
         for i in self.xsd_files_item:
@@ -1039,9 +1053,6 @@ class Main():
         self.save_project()
 
     def submit_energy_collect(self):
-
-        # QMessageBox.information(self.main_window,"提示","提取时间可能较长，程序可能未响应。")
-
         if self.xsd_files_item == []: return
         self.selected_items = []
         for i in self.xsd_files_item:
@@ -1174,6 +1185,7 @@ class Main():
             # QMessageBox.information(self.main_window, "提示", "任务提交中......")
             error_msg = "任务提交失败，请检查\n1:服务器路径设置是否正确\n2:各文件路径是否有效\n3:Key Library是否按照说明书要求设置"
             while True:
+                # 这里会一直等待status，也就是submit job的返回参数修改
                 q = thread.status
                 if q == None:
                     QCoreApplication.processEvents()
@@ -1184,7 +1196,8 @@ class Main():
                         thread.quit()
                         thread.wait()
                         del thread
-
+                        # ssh阻塞过后，于是当status=1时，一定会有submit job on server执行完毕了，然后获取json信息来更新
+                        # 这里下载远端创建的文件，得到信息更新到ui和model
                         info = jc.update_XVI_nodel_info()
                         if info == False: QMessageBox.information(self.main_window, "提示",
                                                                   "节点信息获取失败")
@@ -1197,16 +1210,13 @@ class Main():
                         traceback.print_exc()
                         QMessageBox.critical(self.main_window, "错误", error_msg)
                         return
-
                 elif q == 0:
                     QMessageBox.critical(self.main_window, "错误", error_msg)
                     return
 
         multiThreadUIMain()
-
         for i in self.tmp_xvis:
             i.note = self.tmp_note
-
         self.save_project()
 
 
