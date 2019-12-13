@@ -1,0 +1,3 @@
+import pymesh
+
+pymesh.test()

@@ -11,8 +11,6 @@ if info.startswith("energy  without entropy"):
     info_ = info
 需要添加else:continue
 否则上一个的info_就会留下来
-
-
 但是这种情况一般是RMS没有的，RMS没有就无法判断是否收敛，能量也是无效的，所以RMS存在的时候保证了能量提取是可靠的
 也就是说，如果没有一个energy without entropy，也就没有RMS，提取出来的结果就是没有是否收敛的状态的
 但是如果一个文件是有原有数据，又重新投过的，RMS可能不更新，但是如果OUTCAR出错，能量可能会更新为上一个的

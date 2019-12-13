@@ -1,5 +1,5 @@
 
-from PyQt5.QtGui import QColor
+from PySide2.QtGui import QColor
 
 class XVI_Status():
     Submitted = "Submitted"

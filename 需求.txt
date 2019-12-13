@@ -1,4 +1,4 @@
-
+﻿
 无需设置Type的条件即可提取频率等
 
 
@@ -9,6 +9,7 @@
 删除submit job on server 里面的中文
 
 
+增加将状态设置为closed的功能
 
 
 

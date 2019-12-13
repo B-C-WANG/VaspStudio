@@ -6,7 +6,7 @@
 #
 # WARNING! All changes made in this file will be lost!
 
-from PyQt5 import QtCore, QtGui, QtWidgets
+from PySide2 import QtCore, QtGui, QtWidgets
 
 class Ui_VASPStudio(object):
     def setupUi(self, VASPStudio):
@@ -43,7 +43,7 @@ class Ui_VASPStudio(object):
         self.tabProjectInformation.setAccessibleName("")
         self.tabProjectInformation.setObjectName("tabProjectInformation")
         self.tableWidgetProjectInformation = QtWidgets.QTableWidget(self.tabProjectInformation)
-        self.tableWidgetProjectInformation.setGeometry(QtCore.QRect(10, 30, 841, 531))
+        self.tableWidgetProjectInformation.setGeometry(QtCore.QRect(10, 30, 951, 71))
         self.tableWidgetProjectInformation.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.tableWidgetProjectInformation.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.tableWidgetProjectInformation.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustIgnored)
@@ -69,6 +69,20 @@ class Ui_VASPStudio(object):
         self.tabProjectInformationRefreshButton = QtWidgets.QPushButton(self.tabProjectInformation)
         self.tabProjectInformationRefreshButton.setGeometry(QtCore.QRect(10, 0, 75, 23))
         self.tabProjectInformationRefreshButton.setObjectName("tabProjectInformationRefreshButton")
+        self.moleculeViewSettingsText = QtWidgets.QPlainTextEdit(self.tabProjectInformation)
+        self.moleculeViewSettingsText.setGeometry(QtCore.QRect(10, 150, 951, 611))
+        self.moleculeViewSettingsText.setObjectName("moleculeViewSettingsText")
+        self.label = QtWidgets.QLabel(self.tabProjectInformation)
+        self.label.setGeometry(QtCore.QRect(10, 110, 241, 31))
+        font = QtGui.QFont()
+        font.setFamily("Fira Code")
+        font.setPointSize(10)
+        font.setBold(True)
+        font.setItalic(False)
+        font.setWeight(75)
+        self.label.setFont(font)
+        self.label.setAlignment(QtCore.Qt.AlignCenter)
+        self.label.setObjectName("label")
         self.leftTab.addTab(self.tabProjectInformation, "")
         self.tab = QtWidgets.QWidget()
         self.tab.setObjectName("tab")
@@ -220,7 +234,7 @@ class Ui_VASPStudio(object):
         self.horizontalLayout.addLayout(self.horizontalLayout_2)
         VASPStudio.setCentralWidget(self.centralWidget)
         self.menuBar = QtWidgets.QMenuBar(VASPStudio)
-        self.menuBar.setGeometry(QtCore.QRect(0, 0, 1657, 23))
+        self.menuBar.setGeometry(QtCore.QRect(0, 0, 1657, 26))
         self.menuBar.setObjectName("menuBar")
         self.menuProject = QtWidgets.QMenu(self.menuBar)
         self.menuProject.setObjectName("menuProject")
@@ -258,7 +272,8 @@ class Ui_VASPStudio(object):
         VASPStudio.setWindowTitle(_translate("VASPStudio", "VASP Studio"))
         self.tableWidgetProjectInformation.setSortingEnabled(False)
         self.tabProjectInformationRefreshButton.setText(_translate("VASPStudio", "Refresh"))
-        self.leftTab.setTabText(self.leftTab.indexOf(self.tabProjectInformation), _translate("VASPStudio", "Project Information"))
+        self.label.setText(_translate("VASPStudio", "Molecule View Settings"))
+        self.leftTab.setTabText(self.leftTab.indexOf(self.tabProjectInformation), _translate("VASPStudio", "Settings"))
         self.groupBox_5.setTitle(_translate("VASPStudio", "Job Submit"))
         self.submitJobNew.setText(_translate("VASPStudio", "New"))
         self.submitJobRemove.setText(_translate("VASPStudio", "Remove"))
@@ -315,6 +330,7 @@ class Ui_VASPStudio(object):
         self.actionSaveProject.setText(_translate("VASPStudio", "Save"))
         self.actionSaveProject.setShortcut(_translate("VASPStudio", "Ctrl+S"))
         self.about.setText(_translate("VASPStudio", "About"))
+        self.moleculeViewSettingsText.toPlainText()
 
 
 if __name__ == "__main__":
