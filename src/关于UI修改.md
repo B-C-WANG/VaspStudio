@@ -1,1 +1,0 @@
-- 在DFT_Calc项目中的pyqt5program中启动eric6，读取pyqtProject里面的e4p文件来修改UI

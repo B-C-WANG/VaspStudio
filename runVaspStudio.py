@@ -1,0 +1,1 @@
+from decrypt_or_launch import *
