@@ -1,1 +1,0 @@
-pyinstaller -D   --name="VASP Studio" --icon=ico.ico Main.py

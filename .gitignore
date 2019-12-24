@@ -1,6 +1,9 @@
+*__pycache__*
 *.idea*
 *.pyc
 *src/build*
 *src/dist*
 *.idea*
 *.pkl
+*VaspStudioRuntimePythonEnv*
+*OUTCAR*
