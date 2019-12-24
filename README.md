@@ -1,27 +1,24 @@
 # VaspStudio
 ## 简介
 Vasp任务提交和管理、数据提取和结构可视化软件  
-主要功能：  
-
-- Material Studio的.xsd结构文件自动转POSCAR，自动批量配置和生成INCAR，KPOINTS等文件，自动ssh登录，sftp上传，运行超算任务提交脚本  
+功能：  
+- 以Material Studio的.xsd文件建立项目，配置Vasp任务提交文件，自动转POSCAR，自动批量配置和生成INCAR，KPOINTS等文件，自动ssh登录，sftp上传，运行超算任务提交脚本  
 - 无需下载OUTCAR等，远程直接提取能量、频率和优化RMS数值，快速查看CONTCAR输出结构，导出优化结构到原始.xsd文件，无缝实现连续任务提交  
 - 丰富的文件Mark系统，包括是否收敛，是否有虚频，支持自定义标记  
-- 支持打开超算Vasp运行嵌套目录，对每个Vasp计算结果文件夹进行信息提取，未来可用于建立数据库
+- 支持打开超算Vasp运行嵌套目录，对每个Vasp计算结果文件夹进行信息提取
+- 简单的数据库功能
 - 更多功能查看使用教程和更新日志
-
 
 ## 软件截图
 ![](./figs/r1.png)
 ![](./figs/r2.png)
-
 ## 安装
-不提供编译的exe文件版本，而是提供一个能够运行VaspStudio中Python文件的完整Python环境。下载release中的VaspStudioRuntimePythonEnv，放入根目录，运行runVaspStudio.bat（会使用VaspStudioRuntimePythonEnv文件夹中的python.exe来运行src中的Main.py）
-
+不提供编译的exe文件版本，而是提供一个能够运行VaspStudio中Python文件的完整Python环境。下载release中的VaspStudioRuntimePythonEnv，放入根目录，运行runVaspStudio.bat
 # 功能简述和更新日志 
-
 ## 2019年12月14日 v0.3-preview
-从v0.3版本开始，项目不再公开源代码，仅公开打包后的pyd文件，或通过release给出软件
 ### 功能
+- 打包所有源代码文件，优化目录结构
+- 增加wxDragon打开OUTCAR文件（需要将wxDragon放入运行环境中wxDragon文件夹下）
 - 美化UI
 - 增加导出CONTCAR结构到xsd文件功能，无需本地xsd文件
 - 增加简单的数据库功能，从规定了Key的data.pkl文件中读取信息建立数据库，具备分子绘制，简单的搜索等功能
